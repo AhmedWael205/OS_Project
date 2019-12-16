@@ -114,13 +114,6 @@ bool FinishProcess(struct PCB p)
 }
 
 
-void SRTN(int qid, int count)
-{
-    int rec_val;
-    struct msgbuff rcvmsg;
-    int i = 0;
-}
-
 int curr_ID = -1;
 int curr_PID = -1;
 int childTerminated = 0;
@@ -347,6 +340,145 @@ void HPF(int qid, int count)
         }  // end else (if (ReadyQueue->front == NULL)  )    
     } // end while
 }
+
+
+void SRTN(int qid, int count)
+{
+    int rec_val;
+    int pid;
+    int end;
+    int RecievedCount = 0;
+
+    struct msgbuff rcvmsg;
+    struct Node* Process;
+    struct Node p;
+    struct Queue* ReadyQueue = CreateQueue();
+
+    struct PCB* PCB_Array = (struct PCB*)malloc(count * sizeof(struct PCB));
+    while (count !=0 || ReadyQueue->front != NULL)
+    {
+        if(ReadyQueue->front == NULL)
+        {
+            printf("Waiting For Process arrival ...\n");
+            rec_val = msgrcv(qid,&rcvmsg, sizeof(rcvmsg.p), 7, !IPC_NOWAIT);
+            if(rec_val != -1)
+            {
+                printf("Clock = %d\n", getClk());
+                printf("Received Message at Scheduler = %d\t%d\t%d\t%d\n", rcvmsg.p.id, rcvmsg.p.arrivaltime, rcvmsg.p.runningtime, rcvmsg.p.priority);
+                PCB_Array[rcvmsg.p.id-1] = rcvmsg.p;
+                p.id = rcvmsg.p.id;
+                p.pid = -1;
+                p.remainingtime = rcvmsg.p.runningtime;
+                priorityEnqueue(ReadyQueue, p); 
+                RecievedCount++;
+                count--;
+            }
+        } // end if (ReadyQueue->front == NULL)
+        else
+        {
+            Process = Dequeue(ReadyQueue);
+            printf("Dequeue Process ID = %d , remaining = %d\n",Process->id,Process->remainingtime);
+            PCB_Array[Process->id - 1].status = RUNNING; // RUNNING = 1
+            curr_ID = Process->id;
+            if (Process->pid == -1)
+            {
+                PREEMPTIVE:
+                pid = fork();
+                int start = getClk();
+                if (pid == -1 )perror("Error in forking");
+                else if(pid == 0)
+                {
+                    printf("Forking New Process with ID = %d ....\n",curr_ID);
+                    Process->pid = getpid();
+                    char r[8];
+                    sprintf(r, "%d", Process->remainingtime);
+                    char *argvv[] = {r,NULL };
+                    execv("./process.out",argvv);
+                }
+                else 
+                {
+                    PCB_Array[curr_ID - 1].pid = pid;
+                    StartProcess(PCB_Array[curr_ID - 1]);
+                    curr_PID = pid;
+                    KEEP_RECEIVING2:
+                    rec_val = msgrcv(qid,&rcvmsg, sizeof(rcvmsg.p), 7, !IPC_NOWAIT);
+                    if(rec_val != -1)
+                    {
+                        printf("Clock2 = %d\n", getClk());
+                        printf("Received Message at Scheduler = %d\t%d\t%d\t%d\n", rcvmsg.p.id, rcvmsg.p.arrivaltime, rcvmsg.p.runningtime, rcvmsg.p.priority);
+                        end = getClk() - start;
+
+                        if(rcvmsg.p.runningtime >= Process->remainingtime - end)
+                        {
+                            PCB_Array[rcvmsg.p.id-1] = rcvmsg.p;
+                            p.id = rcvmsg.p.id;
+                            p.pid = -1;
+                            p.remainingtime = rcvmsg.p.runningtime;
+                            STimeEnqueue(ReadyQueue, p); 
+                        }
+                        else
+                        {
+                            for (int i = 0; i < RecievedCount; i++)
+                            {
+                                if (PCB_Array[i].status == READY || PCB_Array[i].status == BLOCKED  )
+                                {
+                                    PCB_Array[i].waitingtime += end;
+                                }
+                            }
+                            PCB_Array[curr_ID-1].remainingtime -= end;
+                            PCB_Array[curr_ID-1].status = BLOCKED; 
+                            PauseProcess(PCB_Array[curr_ID-1]);
+                            p.id = curr_ID;
+                            p.pid = PCB_Array[curr_ID-1].pid;
+                            p.remainingtime = PCB_Array[curr_ID-1].remainingtime;
+                            STimeEnqueue(ReadyQueue, p);
+                            
+                            PCB_Array[rcvmsg.p.id-1] = rcvmsg.p;
+                            curr_ID = rcvmsg.p.id;
+                            curr_PID = rcvmsg.p.pid;
+                            Process->id =rcvmsg.p.id;
+                            Process->remainingtime = rcvmsg.p.remainingtime;
+                            Process->pid = rcvmsg.p.pid;
+                            PCB_Array[rcvmsg.p.id-1].status = RUNNING;
+                            StartProcess(PCB_Array[rcvmsg.p.id-1]);
+                            RecievedCount++;
+                            count--;
+                            goto PREEMPTIVE;
+                            
+                        }
+                        
+                        RecievedCount++;
+                        count--;
+                        goto KEEP_RECEIVING2;
+                    }
+                    else
+                    {
+                        end =getClk() - start;
+                        for (int i = 0; i < RecievedCount; i++)
+                        {
+                            if (PCB_Array[i].status == READY || PCB_Array[i].status == BLOCKED  )
+                            {
+                                PCB_Array[i].waitingtime += end;
+                            }
+                        }
+                        PCB_Array[curr_ID - 1].remainingtime = 0;
+                        PCB_Array[curr_ID - 1].status = FINISHED; // FINISHED = 3
+                        FinishProcess(PCB_Array[curr_ID - 1]);
+                    }
+                } // end fork
+            }
+            else
+            {
+                curr_PID = Process->pid;
+                printf("Sending SIGCONT to process with ID = %d, pid = %d\n",curr_PID,curr_ID);
+                ResumeProcess( PCB_Array[curr_ID - 1]);
+                goto KEEP_RECEIVING2;
+            }   // end else (if (Process->pid == -1)) 
+        }  // end else (if (ReadyQueue->front == NULL)  )    
+    } // end while
+}
+
+
 void alarmHandler(int signum)
 {
     printf("Alarms ...\n");

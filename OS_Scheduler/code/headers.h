@@ -195,6 +195,47 @@ bool priorityEnqueue(struct Queue* q, struct Node p)
     return false;
 }
 
+bool STimeEnqueue(struct Queue* q, struct Node p)
+{
+    struct Node* n = (struct Node*)malloc(sizeof(struct Node));
+    n->next = NULL;
+    n->pid = p.pid;
+    n->id = p.id;
+    n->remainingtime = p.remainingtime;
+    //struct Node* temp = NewNode(p);
+
+
+    //if queue is empty
+    if(q->rear == NULL)
+    {
+        q->front = n;
+        q->rear = n;
+        return true;
+    }
+    else
+    {
+        struct Node* temp = q->front;
+        if(n->remainingtime < temp->remainingtime)
+        {
+            n->next = q->front;
+            q->front = n;
+        }
+        else
+        {
+            while (temp->next!= NULL && n->remainingtime >= temp-> next->remainingtime )
+            {
+                temp = temp->next;
+            }
+            n->next = temp ->next;
+            temp->next = n;
+        }
+        
+
+        return true;
+    }
+    return false;
+}
+
 struct Node* Dequeue(struct Queue* q)
 {
     //if queue is empty return NULL
