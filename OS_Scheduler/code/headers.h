@@ -268,51 +268,75 @@ struct Node* Dequeue(struct Queue* q)
     return temp;
 }
 
+int power(int base, int exponent)
+{
+    int result=1;
+    for(exponent; exponent>0; exponent--)
+    {
+        result = result * base;
+    }
+    return result;
+}
+
 struct Tree* AllocateMemory(struct Tree* root,struct PCB p)
 {
-    // int x = ((root->end - root->start) / 2) + 1 ;
-    // printf("Process Mem = %d , Free Space = %d , at depth = %d, %d -> %d , x = %d\n",p.memsize,root->FreeSpaceSize,root->depth,root->start,root->end,x);
-    // if(root->FreeSpaceSize < p.memsize) return NULL;
-    // else if (p.memsize < x && (root->left == NULL || root->left->FreeSpaceSize >= p.memsize))
-    // {
-    //     if(root->left == NULL)
-    //     {
-    //         root->left = (struct Tree*)malloc(sizeof(struct Tree));
-    //         root->left->depth = root->depth + 1;
-    //         root->left->FreeSpaceSize = root->FreeSpaceSize / 2;
-    //         root->left->start = root->start;
-    //         root->left->end = (root->end / 2);
-    //         root->left->parent = root;
-    //         root->left->left = NULL;
-    //         root->left->right = NULL;
-    //     }
-    //     return AllocateMemory(root->left,p);
-    // }
-    // else if (p.memsize <  x  && root->left != NULL &&  (root->right == NULL|| root->right->FreeSpaceSize >= p.memsize))
-    // {
-    //     if(root->right == NULL)
-    //     {
-    //         root->right = (struct Tree*)malloc(sizeof(struct Tree));
-    //         root->right->depth = root->depth + 1;
-    //         root->right->FreeSpaceSize = root->FreeSpaceSize / 2;
-    //         root->right->start = (root->end/2)+1;
-    //         root->right->end = root->end;
-    //         root->right->parent = root;
-    //         root->right->left = NULL;
-    //         root->right->right = NULL;
-    //     }
-    //     return AllocateMemory(root->right,p);
-    // }
-    // else
-    // {
-    //     struct Tree* temp= root->parent;
-    //     while(temp != NULL)
-    //     {
-    //         temp->FreeSpaceSize -= root->FreeSpaceSize;
-    //         temp = temp->parent;
-    //     }
-    //     root->FreeSpaceSize = 0;
-    //     return root;
-    // }
-    return root;
+    int x = ((root->end - root->start) / 2) + 1 ;
+    printf("Process Mem = %d , Free Space = %d , at depth = %d, %d -> %d , x = %d\n",p.memsize,root->FreeSpaceSize,root->depth,root->start,root->end,x);
+    if(root->FreeSpaceSize < p.memsize) 
+    {
+        printf("No Free Memory\n");
+        return NULL;
+    }
+    else if (p.memsize < x && (root->left == NULL || root->left->FreeSpaceSize >= p.memsize))
+    {
+        if(root->left == NULL)
+        {
+            root->left = (struct Tree*)malloc(sizeof(struct Tree));
+            root->left->depth = root->depth + 1;
+            root->left->FreeSpaceSize = power(2,10-root->depth) / 2;
+            root->left->start = root->start;
+            root->left->end = root->start + ((root->end - root->start) / 2);
+            root->left->parent = root;
+            root->left->left = NULL;
+            root->left->right = NULL;
+        }
+        printf("L\n");
+        return AllocateMemory(root->left,p);
+    }
+    else if (p.memsize <  x  && root->left != NULL &&  (root->right == NULL|| root->right->FreeSpaceSize >= p.memsize))
+    {
+        if(root->right == NULL)
+        {
+            root->right = (struct Tree*)malloc(sizeof(struct Tree));
+            root->right->depth = root->depth + 1;
+            root->right->FreeSpaceSize = power(2,10-root->depth) / 2;
+            root->right->start = (root->end/2)+1;
+            root->right->end = root->end;
+            root->right->parent = root;
+            root->right->left = NULL;
+            root->right->right = NULL;
+        }
+        printf("R\n");
+        return AllocateMemory(root->right,p);
+    }
+    else if (root->right == NULL && root->left == NULL )
+    {
+        struct Tree* temp= root->parent;
+        printf("Here\n");
+
+        while(temp != NULL)
+        {
+            temp->FreeSpaceSize -= root->FreeSpaceSize;
+            temp = temp->parent;
+        }
+        root->FreeSpaceSize = 0;
+        return root;
+    }
+    else
+    {
+        printf("Memory is Not avaliable as a block\n");
+        return NULL;
+    }   
 }
+
+

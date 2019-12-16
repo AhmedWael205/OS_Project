@@ -326,11 +326,11 @@ void HPF(int qid, int count,struct Tree* root)
                 }
                 else 
                 {
+                    
                     PCB_Array[curr_ID - 1].pid = pid;
                     PCB_Array[curr_ID - 1].mem = AllocateMemory(root,PCB_Array[curr_ID - 1]);
                     StartProcess(PCB_Array[curr_ID - 1]);
                     curr_PID = pid;
-                    childTerminated = 0;
                     KEEP_RECEIVING:
                     rec_val = msgrcv(qid,&rcvmsg, sizeof(rcvmsg.p), 7, !IPC_NOWAIT);
                     if(rec_val != -1)
@@ -356,6 +356,7 @@ void HPF(int qid, int count,struct Tree* root)
                                 PCB_Array[i].waitingtime = getClk() - PCB_Array[i].arrivaltime - (PCB_Array[i].runningtime - PCB_Array[i].remainingtime );
                             }
                         }
+
                         PCB_Array[curr_ID - 1].remainingtime = 0;
                         PCB_Array[curr_ID - 1].status = FINISHED; // FINISHED = 3
                         FinishProcess(PCB_Array[curr_ID - 1]);
