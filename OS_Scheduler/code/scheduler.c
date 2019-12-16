@@ -6,6 +6,7 @@
 #define MAX 10000
 
 FILE * pFile;
+FILE * pFile2;
 
 //Process related Functions
 bool StartProcess(struct PCB p);
@@ -15,9 +16,9 @@ void alarmHandler(int signum);
 void ChildSignal(int signum);
 
 //Algorithm chosen Functions
-void HPF(int qid, int count);
-void SRTN(int qid, int count);
-void RR(int qid, int count ,int Q);
+void HPF(int qid, int count,struct Tree* root);
+void SRTN(int qid, int count,struct Tree* root);
+void RR(int qid, int count ,int Q,struct Tree* root);
 
 //Function 3ashwa2eya 
 struct PCB GetProcess(struct Queue* q);
@@ -36,7 +37,9 @@ int main(int argc, char * argv[])
 
     //Open scheduler file to write first line
     pFile = fopen("scheduler.log", "w");
+    pFile2 = fopen("memory.log", "w");
     fprintf(pFile, "#At time x process y state arr w total z remain y wait k\n");
+    fprintf(pFile2, "#At time x allocated y bytes for process z from i to j\n");
 
     //Message Queue Initialization
     key_t key = ftok(KEY_PATH, ID);
@@ -63,35 +66,55 @@ int main(int argc, char * argv[])
         //printf("Q = %d\n", Q);
     }
 
+    struct Tree* root = (struct Tree*)malloc(sizeof(struct Tree));
+    root->depth = 0;
+    root->FreeSpaceSize = 1024;
+    root->start = 0;
+    root->end = 1023;
+    root->left = NULL;
+    root->right = NULL;
+
     if(algo == 1)
     {
-        HPF(qid, count);
+        HPF(qid, count,root);
     }
     else if(algo == 2)
     {
-        SRTN(qid, count);
+        SRTN(qid, count,root);
     }
     else if(algo == 3)
     {
-        RR(qid, count, Q);
+        RR(qid, count, Q,root);
     } 
     fclose(pFile);  
+    fclose(pFile2);  
     printf("Scheduler Destroying Clock\n"); 
     destroyClk(true);
 }
 
+bool AllocMem(struct PCB p)
+{
+    fprintf(pFile2, "#At time %d allocated %d bytes for process %d from %d to %d\n",getClk(),p.memsize,p.id,p.mem->start,p.mem->end);
+    return true;
+}
+
+bool FreeMem(struct PCB p)
+{
+    fprintf(pFile2, "#At time %d freed %d bytes for process %d from %d to %d\n",getClk(),p.memsize,p.id,p.mem->start,p.mem->end);
+    return true;
+}
+
 bool StartProcess(struct PCB p)
 {
-    int x = getClk();
-    fprintf(pFile,"At time %d process %d started arr %d total %d remain %d wait %d\n",x, p.id, p.arrivaltime, p.runningtime, p.remainingtime, p.waitingtime );
+    fprintf(pFile,"At time %d process %d started arr %d total %d remain %d wait %d\n",getClk(), p.id, p.arrivaltime, p.runningtime, p.remainingtime, p.waitingtime );
+    AllocMem(p);
     return true;
 }
 
 
 bool PauseProcess(struct PCB p)
 {
-    int x = getClk();
-    fprintf(pFile,"At time %d process %d stopped arr %d total %d remain %d wait %d\n",x, p.id, p.arrivaltime, p.runningtime, p.remainingtime, p.waitingtime );
+    fprintf(pFile,"At time %d process %d stopped arr %d total %d remain %d wait %d\n",getClk(), p.id, p.arrivaltime, p.runningtime, p.remainingtime, p.waitingtime );
     kill(p.pid, SIGSTOP);
     return true;
 }
@@ -99,8 +122,7 @@ bool PauseProcess(struct PCB p)
 
 bool ResumeProcess(struct PCB p)
 {
-    int x = getClk();
-    fprintf(pFile,"At time %d process %d resumed arr %d total %d remain %d wait %d\n",x, p.id, p.arrivaltime, p.runningtime, p.remainingtime, p.waitingtime );
+    fprintf(pFile,"At time %d process %d resumed arr %d total %d remain %d wait %d\n",getClk(), p.id, p.arrivaltime, p.runningtime, p.remainingtime, p.waitingtime );
     kill(p.pid, SIGCONT);
     return true;
 }
@@ -110,6 +132,7 @@ bool FinishProcess(struct PCB p)
     int x = getClk();
     fprintf(pFile,"At time %d process %d finished arr %d total %d remain %d wait %d TA %d WTA %0.2f\n",x, p.id, p.arrivaltime, p.runningtime, p.remainingtime, p.waitingtime,x - p.arrivaltime ,(float)(x - p.arrivaltime)/p.runningtime );
     kill(p.pid, SIGCONT);
+    FreeMem(p);
     return true;
 }
 
@@ -118,7 +141,7 @@ int curr_ID = -1;
 int curr_PID = -1;
 int childTerminated = 0;
 
-void RR(int qid, int count ,int Q)
+void RR(int qid, int count ,int Q,struct Tree* root)
 {
     int rec_val;
     int pid;
@@ -139,7 +162,7 @@ void RR(int qid, int count ,int Q)
             if(rec_val != -1)
             {
                 printf("Clock = %d\n", getClk());
-                printf("Received Message at Scheduler = %d\t%d\t%d\t%d\n", rcvmsg.p.id, rcvmsg.p.arrivaltime, rcvmsg.p.runningtime, rcvmsg.p.priority);
+                printf("Received Message at Scheduler = %d\t%d\t%d\t%d\t%d\n", rcvmsg.p.id, rcvmsg.p.arrivaltime, rcvmsg.p.runningtime, rcvmsg.p.priority,rcvmsg.p.memsize);
                 PCB_Array[rcvmsg.p.id-1] = rcvmsg.p;
                 p.id = rcvmsg.p.id;
                 p.pid = -1;
@@ -170,6 +193,7 @@ void RR(int qid, int count ,int Q)
                 else 
                 {
                     PCB_Array[curr_ID - 1].pid = pid;
+                    PCB_Array[curr_ID - 1].mem = AllocateMemory(root,PCB_Array[curr_ID - 1]);
                     StartProcess(PCB_Array[curr_ID - 1]);
                     curr_PID = pid;
                     childTerminated = 0;
@@ -182,7 +206,7 @@ void RR(int qid, int count ,int Q)
                     if(rec_val != -1)
                     {
                         printf("Clock2 = %d\n", getClk());
-                        printf("Received Message at Scheduler = %d\t%d\t%d\t%d\n", rcvmsg.p.id, rcvmsg.p.arrivaltime, rcvmsg.p.runningtime, rcvmsg.p.priority);
+                        printf("Received Message at Scheduler = %d\t%d\t%d\t%d\t%d\n", rcvmsg.p.id, rcvmsg.p.arrivaltime, rcvmsg.p.runningtime, rcvmsg.p.priority,rcvmsg.p.memsize);
                         PCB_Array[rcvmsg.p.id-1] = rcvmsg.p;
                         p.id = rcvmsg.p.id;
                         p.pid = -1;
@@ -249,7 +273,7 @@ void RR(int qid, int count ,int Q)
 }
 
 
-void HPF(int qid, int count)
+void HPF(int qid, int count,struct Tree* root)
 {
     int rec_val;
     int pid;
@@ -270,7 +294,7 @@ void HPF(int qid, int count)
             if(rec_val != -1)
             {
                 printf("Clock = %d\n", getClk());
-                printf("Received Message at Scheduler = %d\t%d\t%d\t%d\n", rcvmsg.p.id, rcvmsg.p.arrivaltime, rcvmsg.p.runningtime, rcvmsg.p.priority);
+                printf("Received Message at Scheduler = %d\t%d\t%d\t%d\t%d\n", rcvmsg.p.id, rcvmsg.p.arrivaltime, rcvmsg.p.runningtime, rcvmsg.p.priority,rcvmsg.p.memsize);
                 PCB_Array[rcvmsg.p.id-1] = rcvmsg.p;
                 p.id = rcvmsg.p.id;
                 p.pid = -1;
@@ -303,6 +327,7 @@ void HPF(int qid, int count)
                 else 
                 {
                     PCB_Array[curr_ID - 1].pid = pid;
+                    PCB_Array[curr_ID - 1].mem = AllocateMemory(root,PCB_Array[curr_ID - 1]);
                     StartProcess(PCB_Array[curr_ID - 1]);
                     curr_PID = pid;
                     childTerminated = 0;
@@ -311,7 +336,7 @@ void HPF(int qid, int count)
                     if(rec_val != -1)
                     {
                         printf("Clock2 = %d\n", getClk());
-                        printf("Received Message at Scheduler = %d\t%d\t%d\t%d\n", rcvmsg.p.id, rcvmsg.p.arrivaltime, rcvmsg.p.runningtime, rcvmsg.p.priority);
+                        printf("Received Message at Scheduler = %d\t%d\t%d\t%d\t%d\n", rcvmsg.p.id, rcvmsg.p.arrivaltime, rcvmsg.p.runningtime, rcvmsg.p.priority,rcvmsg.p.memsize);
                         PCB_Array[rcvmsg.p.id-1] = rcvmsg.p;
                         p.id = rcvmsg.p.id;
                         p.pid = -1;
@@ -342,7 +367,7 @@ void HPF(int qid, int count)
 }
 
 
-void SRTN(int qid, int count)
+void SRTN(int qid, int count,struct Tree* root)
 {
     int rec_val;
     int pid;
@@ -364,7 +389,7 @@ void SRTN(int qid, int count)
             if(rec_val != -1)
             {
                 printf("Clock = %d\n", getClk());
-                printf("Received Message at Scheduler = %d\t%d\t%d\t%d\n", rcvmsg.p.id, rcvmsg.p.arrivaltime, rcvmsg.p.runningtime, rcvmsg.p.priority);
+                printf("Received Message at Scheduler = %d\t%d\t%d\t%d\t%d\n", rcvmsg.p.id, rcvmsg.p.arrivaltime, rcvmsg.p.runningtime, rcvmsg.p.priority,rcvmsg.p.memsize);
                 PCB_Array[rcvmsg.p.id-1] = rcvmsg.p;
                 p.id = rcvmsg.p.id;
                 p.pid = -1;
@@ -398,6 +423,7 @@ void SRTN(int qid, int count)
                 else 
                 {
                     PCB_Array[curr_ID - 1].pid = pid;
+                    PCB_Array[curr_ID - 1].mem = AllocateMemory(root,PCB_Array[curr_ID - 1]);
                     StartProcess(PCB_Array[curr_ID - 1]);
                     curr_PID = pid;
                     KEEP_RECEIVING2:
@@ -405,7 +431,7 @@ void SRTN(int qid, int count)
                     if(rec_val != -1)
                     {
                         printf("Clock2 = %d\n", getClk());
-                        printf("Received Message at Scheduler = %d\t%d\t%d\t%d\n", rcvmsg.p.id, rcvmsg.p.arrivaltime, rcvmsg.p.runningtime, rcvmsg.p.priority);
+                        printf("Received Message at Scheduler = %d\t%d\t%d\t%d\t%d\n", rcvmsg.p.id, rcvmsg.p.arrivaltime, rcvmsg.p.runningtime, rcvmsg.p.priority,rcvmsg.p.memsize);
                         end = getClk() - start;
 
                         if(rcvmsg.p.runningtime >= Process->remainingtime - end)
@@ -440,6 +466,7 @@ void SRTN(int qid, int count)
                             Process->remainingtime = rcvmsg.p.remainingtime;
                             Process->pid = rcvmsg.p.pid;
                             PCB_Array[rcvmsg.p.id-1].status = RUNNING;
+                            PCB_Array[curr_ID - 1].mem = AllocateMemory(root,PCB_Array[curr_ID - 1]);
                             StartProcess(PCB_Array[rcvmsg.p.id-1]);
                             RecievedCount++;
                             count--;

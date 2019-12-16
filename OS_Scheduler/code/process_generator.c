@@ -26,7 +26,7 @@ int main(int argc, char * argv[])
         return (-1);
     }
 
-      while (1)
+    while (1)
     {
         fgets(str, MAX, pFile);
         fscanf(pFile,"%d %d %d %d", &p.id, &p.arrivaltime, &p.runningtime, &p.priority);
@@ -46,7 +46,7 @@ int main(int argc, char * argv[])
     while (count2 != 0)
     {
         fgets(str, MAX, pFile);
-        fscanf(pFile,"%d %d %d %d", &p.id, &p.arrivaltime, &p.runningtime, &p.priority);
+        fscanf(pFile,"%d %d %d %d %d", &p.id, &p.arrivaltime, &p.runningtime, &p.priority,&p.memsize);
         p.remainingtime = p.runningtime;
         p.waitingtime = 0;
         p.status = READY;
@@ -66,7 +66,7 @@ int main(int argc, char * argv[])
 
     for (int i = 0; i < count; i++)
     {
-        printf("%d\t%d\t%d\t%d\n", PCB_Array[i].id, PCB_Array[i].arrivaltime, PCB_Array[i].runningtime, PCB_Array[i].priority);
+        printf("%d\t%d\t%d\t%d\t%d\n", PCB_Array[i].id, PCB_Array[i].arrivaltime, PCB_Array[i].runningtime, PCB_Array[i].priority,PCB_Array[i].memsize);
     }
     // exit(0);
 
@@ -173,6 +173,7 @@ int main(int argc, char * argv[])
             msg.p.runningtime = PCB_Array[count2].runningtime;
             msg.p.status = PCB_Array[count2].status;
             msg.p.waitingtime = PCB_Array[count2].waitingtime;
+            msg.p.memsize = PCB_Array[count2].memsize;
             count2++;
             send_val = msgsnd(qid, &msg, sizeof(msg.p), !IPC_NOWAIT);
             if(send_val == -1)

@@ -44,6 +44,8 @@ struct PCB
     int arrivaltime;
     int priority;
     int runningtime;
+    int memsize;
+    struct Tree* mem;
 };
 
 //Message buffer struct
@@ -63,6 +65,17 @@ struct Node
     int priority;
     struct Node* next;
 };
+
+struct Tree
+{
+    struct Tree* left;
+    struct Tree* right;
+    struct Tree* parent;
+    int start,end;
+    int depth;
+    int FreeSpaceSize;
+};
+
 
 struct Queue
 {
@@ -253,4 +266,53 @@ struct Node* Dequeue(struct Queue* q)
         q->rear = NULL;
     }
     return temp;
+}
+
+struct Tree* AllocateMemory(struct Tree* root,struct PCB p)
+{
+    // int x = ((root->end - root->start) / 2) + 1 ;
+    // printf("Process Mem = %d , Free Space = %d , at depth = %d, %d -> %d , x = %d\n",p.memsize,root->FreeSpaceSize,root->depth,root->start,root->end,x);
+    // if(root->FreeSpaceSize < p.memsize) return NULL;
+    // else if (p.memsize < x && (root->left == NULL || root->left->FreeSpaceSize >= p.memsize))
+    // {
+    //     if(root->left == NULL)
+    //     {
+    //         root->left = (struct Tree*)malloc(sizeof(struct Tree));
+    //         root->left->depth = root->depth + 1;
+    //         root->left->FreeSpaceSize = root->FreeSpaceSize / 2;
+    //         root->left->start = root->start;
+    //         root->left->end = (root->end / 2);
+    //         root->left->parent = root;
+    //         root->left->left = NULL;
+    //         root->left->right = NULL;
+    //     }
+    //     return AllocateMemory(root->left,p);
+    // }
+    // else if (p.memsize <  x  && root->left != NULL &&  (root->right == NULL|| root->right->FreeSpaceSize >= p.memsize))
+    // {
+    //     if(root->right == NULL)
+    //     {
+    //         root->right = (struct Tree*)malloc(sizeof(struct Tree));
+    //         root->right->depth = root->depth + 1;
+    //         root->right->FreeSpaceSize = root->FreeSpaceSize / 2;
+    //         root->right->start = (root->end/2)+1;
+    //         root->right->end = root->end;
+    //         root->right->parent = root;
+    //         root->right->left = NULL;
+    //         root->right->right = NULL;
+    //     }
+    //     return AllocateMemory(root->right,p);
+    // }
+    // else
+    // {
+    //     struct Tree* temp= root->parent;
+    //     while(temp != NULL)
+    //     {
+    //         temp->FreeSpaceSize -= root->FreeSpaceSize;
+    //         temp = temp->parent;
+    //     }
+    //     root->FreeSpaceSize = 0;
+    //     return root;
+    // }
+    return root;
 }
