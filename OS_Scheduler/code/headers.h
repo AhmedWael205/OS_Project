@@ -339,4 +339,59 @@ struct Tree* AllocateMemory(struct Tree* root,struct PCB p)
     }   
 }
 
+bool FreeMemory(struct Tree* Node,struct PCB p)
+{
+    printf("Allocated mem from %d to %d\n",Node->start,Node->end);
+    if(p.mem == NULL) 
+    {
+        printf("Error No memory allocated\n");
+        return false;
+    }
+    struct Tree* parent = Node->parent;
 
+    int x = power(2,10-Node->depth);
+    Node->FreeSpaceSize = x;
+
+    while(parent != NULL)
+    {
+        printf("Parent old Free Space = %d\n",parent->FreeSpaceSize);
+        parent->FreeSpaceSize +=  x;
+        printf("Parent new Free Space = %d\n",parent->FreeSpaceSize);
+
+        int y = power(2,10-(parent->depth+1));
+        
+        if(parent->right == NULL && parent->left->FreeSpaceSize == y)
+        {
+            printf("Merging\n");
+            free(parent->left);
+            parent->left = NULL;
+        }
+        else if(parent->left == NULL && parent->right->FreeSpaceSize == y)
+        {
+            printf("Merging\n");
+            free(parent->right);
+            parent->right = NULL;
+        }
+        else if(parent->right->FreeSpaceSize == y && parent->left->FreeSpaceSize == y)
+        {
+            printf("Merging\n");
+            free(parent->left);
+            free(parent->right);
+            parent->left = NULL;
+            parent->right = NULL;
+        }
+        else
+        {
+            printf("No Merging\n");
+            return true;
+        }
+        parent = parent->parent;
+    }
+
+    if(parent == NULL) 
+    {
+        printf("Root\n");
+        return  true;
+    }
+    return true;
+}

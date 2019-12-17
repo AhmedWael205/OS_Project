@@ -250,6 +250,7 @@ void RR(int qid, int count ,int Q,struct Tree* root)
                             }
                             PCB_Array[curr_ID - 1].remainingtime = 0;
                             PCB_Array[curr_ID - 1].status = FINISHED; // FINISHED = 3
+                            FreeMemory(PCB_Array[curr_ID - 1].mem,PCB_Array[curr_ID - 1]);
                             FinishProcess(PCB_Array[curr_ID - 1]);
                         }
                         
@@ -359,6 +360,7 @@ void HPF(int qid, int count,struct Tree* root)
 
                         PCB_Array[curr_ID - 1].remainingtime = 0;
                         PCB_Array[curr_ID - 1].status = FINISHED; // FINISHED = 3
+                        FreeMemory(PCB_Array[curr_ID - 1].mem,PCB_Array[curr_ID - 1]);
                         FinishProcess(PCB_Array[curr_ID - 1]);
                     }
                 } // end fork
@@ -491,6 +493,7 @@ void SRTN(int qid, int count,struct Tree* root)
                         }
                         PCB_Array[curr_ID - 1].remainingtime = 0;
                         PCB_Array[curr_ID - 1].status = FINISHED; // FINISHED = 3
+                        FreeMemory(PCB_Array[curr_ID - 1].mem,PCB_Array[curr_ID - 1]);
                         FinishProcess(PCB_Array[curr_ID - 1]);
                     }
                 } // end fork
