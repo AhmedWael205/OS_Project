@@ -297,6 +297,8 @@ int power(int base, int exponent)
 }
 
 FILE * FreeMemLog;
+
+FILE *AllocDeallocLog;
 struct Tree* AllocateBestFit(struct FreeListHead* FreeListHead, int Pmemsize)
 {
 
@@ -375,21 +377,21 @@ struct Tree* AllocateMemory(struct FreeListHead* FreeListHead,struct PCB p)
 {
     if(FreeListHead->front == NULL) 
     {
-        printf("Error: FreeList is empty\n");
+        fprintf(AllocDeallocLog,"Error: FreeList is empty\n");
         return NULL;
     }
-    printf("FreeList root FreeSpace = %d\n",FreeListHead->front->Tree->FreeSpaceSize);
+    fprintf(AllocDeallocLog,"FreeList root FreeSpace = %d\n",FreeListHead->front->Tree->FreeSpaceSize);
     struct Tree* FirstBestFit = AllocateBestFit(FreeListHead,p.memsize);
     if(FirstBestFit == NULL)
     {
-       printf("Error: Failed Allocated Memory\n");
+       fprintf(AllocDeallocLog,"Error: Failed Allocated Memory\n");
        return NULL;
     }
     int x = ((FirstBestFit->end - FirstBestFit->start) / 2) + 1 ;
-    printf("Process Mem = %d , FirstBestFit: Free Space = %d , at depth = %d, %d -> %d , x = %d\n",p.memsize,FirstBestFit->FreeSpaceSize,FirstBestFit->depth,FirstBestFit->start,FirstBestFit->end,x);
+    fprintf(AllocDeallocLog,"Process Mem = %d , FirstBestFit: Free Space = %d , at depth = %d, %d -> %d , x = %d\n",p.memsize,FirstBestFit->FreeSpaceSize,FirstBestFit->depth,FirstBestFit->start,FirstBestFit->end,x);
     if(FirstBestFit->FreeSpaceSize < p.memsize) 
     {
-        printf("Error: No Free Memory\n");
+        fprintf(AllocDeallocLog,"Error: No Free Memory\n");
         return NULL;
     }
     else if (p.memsize < x && (FirstBestFit->left == NULL || FirstBestFit->left->FreeSpaceSize >= p.memsize))
@@ -420,7 +422,7 @@ struct Tree* AllocateMemory(struct FreeListHead* FreeListHead,struct PCB p)
             InsertFreeSpace(FreeListHead,FirstBestFit->right);
         }
 
-        printf("L\n");
+        fprintf(AllocDeallocLog,"go to Left Child\n");
         return AllocateMemory(FreeListHead,p);
     }
     else if (p.memsize <  x  && FirstBestFit->left != NULL &&  (FirstBestFit->right == NULL|| FirstBestFit->right->FreeSpaceSize >= p.memsize))
@@ -438,13 +440,13 @@ struct Tree* AllocateMemory(struct FreeListHead* FreeListHead,struct PCB p)
             FirstBestFit->right->right = NULL;
             InsertFreeSpace(FreeListHead,FirstBestFit->right);
         }
-        printf("R\n");
+        fprintf(AllocDeallocLog,"goto Right Child\n");
         return AllocateMemory(FreeListHead,p);
     }
     else if (FirstBestFit->right == NULL && FirstBestFit->left == NULL )
     {
         struct Tree* temp= FirstBestFit->parent;
-        printf("Here\n");
+        fprintf(AllocDeallocLog,"Allocate The Memory Here\n");
 
         while(temp != NULL)
         {
@@ -453,25 +455,21 @@ struct Tree* AllocateMemory(struct FreeListHead* FreeListHead,struct PCB p)
         }
         FirstBestFit->FreeSpaceSize = 0;
         RemoveFreeSpace(FreeListHead,FirstBestFit);
-        if (FirstBestFit == NULL)
-        {
-            printf("Here 2\n");
-        }
         return FirstBestFit;
     }
     else
     {
-        printf("Memory is Not avaliable as a block\n");
+        fprintf(AllocDeallocLog,"Memory is Not avaliable as a block\n");
         return NULL;
     }   
 }
 
 bool FreeMemory(struct FreeListHead* FreeListHead,struct PCB p)
 {
-    printf("Allocated mem from %d to %d\n",p.mem->start,p.mem->end);
+    fprintf(AllocDeallocLog,"Allocated mem from %d to %d\n",p.mem->start,p.mem->end);
     if(p.mem == NULL) 
     {
-        printf("Error No memory allocated\n");
+        fprintf(AllocDeallocLog,"Error No memory allocated\n");
         return false;
     }
     struct Tree* parent = p.mem->parent;
@@ -481,28 +479,15 @@ bool FreeMemory(struct FreeListHead* FreeListHead,struct PCB p)
     InsertFreeSpace(FreeListHead,p.mem);
     while(parent != NULL)
     {
-        printf("Parent old Free Space = %d\n",parent->FreeSpaceSize);
+        fprintf(AllocDeallocLog,"Parent old Free Space = %d\n",parent->FreeSpaceSize);
         parent->FreeSpaceSize +=  x;
-        printf("Parent new Free Space = %d\n",parent->FreeSpaceSize);
+        fprintf(AllocDeallocLog,"Parent new Free Space = %d\n",parent->FreeSpaceSize);
 
         int y = power(2,10-(parent->depth+1));
         
-        // if(parent->right == NULL && parent->left->FreeSpaceSize == y)
-        // {
-        //     printf("Merging\n");
-        //     free(parent->left);
-        //     parent->left = NULL;
-        // }
-        // else if(parent->left == NULL && parent->right->FreeSpaceSize == y)
-        // {
-        //     printf("Merging\n");
-        //     free(parent->right);
-        //     parent->right = NULL;
-        // }
-        // else
         if(parent->right->FreeSpaceSize == y && parent->left->FreeSpaceSize == y)
         {
-            printf("Merging\n");
+            fprintf(AllocDeallocLog,"Merging\n");
             RemoveFreeSpace(FreeListHead,parent->left);
             RemoveFreeSpace(FreeListHead,parent->right);
             free(parent->left);
@@ -513,7 +498,7 @@ bool FreeMemory(struct FreeListHead* FreeListHead,struct PCB p)
         }
         else
         {
-            printf("No Merging\n");
+            fprintf(AllocDeallocLog,"No Merging\n");
             return true;
         }
         parent = parent->parent;
@@ -521,7 +506,7 @@ bool FreeMemory(struct FreeListHead* FreeListHead,struct PCB p)
 
     if(parent == NULL) 
     {
-        printf("Root\n");
+        fprintf(AllocDeallocLog,"Root\n");
         return  true;
     }
     return true;

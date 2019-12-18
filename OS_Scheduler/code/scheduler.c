@@ -40,6 +40,7 @@ int main(int argc, char * argv[])
     pFile = fopen("scheduler.log", "w");
     pFile2 = fopen("memory.log", "w");
     FreeMemLog = fopen("FreeMemLog.log", "w");
+    AllocDeallocLog = fopen("AllocDeallocLog.log","w");
     fprintf(pFile, "#At time x process y state arr w total z remain y wait k\n");
     fprintf(pFile2, "#At time x allocated y bytes for process z from i to j\n");
 
@@ -100,6 +101,7 @@ int main(int argc, char * argv[])
     fclose(pFile);  
     fclose(pFile2); 
     fclose(FreeMemLog);
+    fclose(AllocDeallocLog);
     printf("Scheduler Destroying Clock\n"); 
     destroyClk(true);
 }
