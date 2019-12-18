@@ -16,9 +16,9 @@ void alarmHandler(int signum);
 void ChildSignal(int signum);
 
 //Algorithm chosen Functions
-void HPF(int qid, int count,struct Tree* root);
-void SRTN(int qid, int count,struct Tree* root);
-void RR(int qid, int count ,int Q,struct Tree* root);
+void HPF(int qid, int count,struct TreeNode* FreeList);
+void SRTN(int qid, int count,struct TreeNode* FreeList);
+void RR(int qid, int count ,int Q,struct TreeNode* FreeList);
 
 //Function 3ashwa2eya 
 struct PCB GetProcess(struct Queue* q);
@@ -73,18 +73,31 @@ int main(int argc, char * argv[])
     root->end = 1023;
     root->left = NULL;
     root->right = NULL;
+    struct TreeNode* FreeList  = (struct TreeNode*)malloc(sizeof(struct TreeNode));
+    FreeList->next =NULL;
+    FreeList->Tree = root;
+    printf("FreeList = %p, FreeList->Tree = %p\n",FreeList,FreeList);
+
+    printf("here\n");
+    if(FreeList == NULL) 
+    {
+        printf("Error: FreeList is empty\n");
+        return -1;
+    }
+    printf("FreeList root FreeSpace = %d\n",FreeList->Tree->FreeSpaceSize);
+
 
     if(algo == 1)
     {
-        HPF(qid, count,root);
+        HPF(qid, count,FreeList);
     }
     else if(algo == 2)
     {
-        SRTN(qid, count,root);
+        SRTN(qid, count,FreeList);
     }
     else if(algo == 3)
     {
-        RR(qid, count, Q,root);
+        RR(qid, count, Q,FreeList);
     } 
     fclose(pFile);  
     fclose(pFile2);  
@@ -141,7 +154,7 @@ int curr_ID = -1;
 int curr_PID = -1;
 int childTerminated = 0;
 
-void RR(int qid, int count ,int Q,struct Tree* root)
+void RR(int qid, int count ,int Q,struct TreeNode* FreeList)
 {
     int rec_val;
     int pid;
@@ -193,7 +206,7 @@ void RR(int qid, int count ,int Q,struct Tree* root)
                 else 
                 {
                     PCB_Array[curr_ID - 1].pid = pid;
-                    PCB_Array[curr_ID - 1].mem = AllocateMemory(root,PCB_Array[curr_ID - 1]);
+                    PCB_Array[curr_ID - 1].mem = AllocateMemory(FreeList,PCB_Array[curr_ID - 1]);
                     StartProcess(PCB_Array[curr_ID - 1]);
                     curr_PID = pid;
                     childTerminated = 0;
@@ -250,7 +263,7 @@ void RR(int qid, int count ,int Q,struct Tree* root)
                             }
                             PCB_Array[curr_ID - 1].remainingtime = 0;
                             PCB_Array[curr_ID - 1].status = FINISHED; // FINISHED = 3
-                            FreeMemory(PCB_Array[curr_ID - 1].mem,PCB_Array[curr_ID - 1]);
+                            //FreeMemory(PCB_Array[curr_ID - 1].mem,PCB_Array[curr_ID - 1]);
                             FinishProcess(PCB_Array[curr_ID - 1]);
                         }
                         
@@ -274,7 +287,7 @@ void RR(int qid, int count ,int Q,struct Tree* root)
 }
 
 
-void HPF(int qid, int count,struct Tree* root)
+void HPF(int qid, int count,struct TreeNode* FreeList)
 {
     int rec_val;
     int pid;
@@ -329,7 +342,7 @@ void HPF(int qid, int count,struct Tree* root)
                 {
                     
                     PCB_Array[curr_ID - 1].pid = pid;
-                    PCB_Array[curr_ID - 1].mem = AllocateMemory(root,PCB_Array[curr_ID - 1]);
+                    PCB_Array[curr_ID - 1].mem = AllocateMemory(FreeList,PCB_Array[curr_ID - 1]);
                     StartProcess(PCB_Array[curr_ID - 1]);
                     curr_PID = pid;
                     KEEP_RECEIVING:
@@ -360,7 +373,7 @@ void HPF(int qid, int count,struct Tree* root)
 
                         PCB_Array[curr_ID - 1].remainingtime = 0;
                         PCB_Array[curr_ID - 1].status = FINISHED; // FINISHED = 3
-                        FreeMemory(PCB_Array[curr_ID - 1].mem,PCB_Array[curr_ID - 1]);
+                        //FreeMemory(PCB_Array[curr_ID - 1].mem,PCB_Array[curr_ID - 1]);
                         FinishProcess(PCB_Array[curr_ID - 1]);
                     }
                 } // end fork
@@ -370,7 +383,7 @@ void HPF(int qid, int count,struct Tree* root)
 }
 
 
-void SRTN(int qid, int count,struct Tree* root)
+void SRTN(int qid, int count,struct TreeNode* FreeList)
 {
     int rec_val;
     int pid;
@@ -426,7 +439,7 @@ void SRTN(int qid, int count,struct Tree* root)
                 else 
                 {
                     PCB_Array[curr_ID - 1].pid = pid;
-                    PCB_Array[curr_ID - 1].mem = AllocateMemory(root,PCB_Array[curr_ID - 1]);
+                    PCB_Array[curr_ID - 1].mem = AllocateMemory(FreeList,PCB_Array[curr_ID - 1]);
                     StartProcess(PCB_Array[curr_ID - 1]);
                     curr_PID = pid;
                     KEEP_RECEIVING2:
@@ -469,7 +482,7 @@ void SRTN(int qid, int count,struct Tree* root)
                             Process->remainingtime = rcvmsg.p.remainingtime;
                             Process->pid = rcvmsg.p.pid;
                             PCB_Array[rcvmsg.p.id-1].status = RUNNING;
-                            PCB_Array[curr_ID - 1].mem = AllocateMemory(root,PCB_Array[curr_ID - 1]);
+                            PCB_Array[curr_ID - 1].mem = AllocateMemory(FreeList,PCB_Array[curr_ID - 1]);
                             StartProcess(PCB_Array[rcvmsg.p.id-1]);
                             RecievedCount++;
                             count--;
@@ -493,7 +506,7 @@ void SRTN(int qid, int count,struct Tree* root)
                         }
                         PCB_Array[curr_ID - 1].remainingtime = 0;
                         PCB_Array[curr_ID - 1].status = FINISHED; // FINISHED = 3
-                        FreeMemory(PCB_Array[curr_ID - 1].mem,PCB_Array[curr_ID - 1]);
+                        //FreeMemory(PCB_Array[curr_ID - 1].mem,PCB_Array[curr_ID - 1]);
                         FinishProcess(PCB_Array[curr_ID - 1]);
                     }
                 } // end fork

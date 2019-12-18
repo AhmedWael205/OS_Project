@@ -82,6 +82,12 @@ struct Queue
     struct Node *front, *rear;
 };
 
+struct TreeNode
+{
+    struct Tree *Tree;
+    struct TreeNode *next;
+};
+
 int getClk()
 {
     return *shmaddr;
@@ -277,60 +283,151 @@ int power(int base, int exponent)
     }
     return result;
 }
-
-struct Tree* AllocateMemory(struct Tree* root,struct PCB p)
+struct Tree* AllocateBestFit(struct TreeNode* FreeList, int Pmemsize)
 {
-    int x = ((root->end - root->start) / 2) + 1 ;
-    printf("Process Mem = %d , Free Space = %d , at depth = %d, %d -> %d , x = %d\n",p.memsize,root->FreeSpaceSize,root->depth,root->start,root->end,x);
-    if(root->FreeSpaceSize < p.memsize) 
+    struct TreeNode* temp = FreeList;
+    struct Tree* BestFit = NULL;
+    int min = 99999999;
+    while(temp != NULL)
     {
-        printf("No Free Memory\n");
+        if(temp->Tree->FreeSpaceSize - Pmemsize <= min && (BestFit == NULL || BestFit->start > temp->Tree->start))
+        {
+            min = temp->Tree->FreeSpaceSize - Pmemsize;
+            printf("min = %d\n",min);
+            BestFit = temp->Tree;
+        }
+        temp = temp->next;
+    }
+    return BestFit;
+}
+
+bool RemoveFreeSpace(struct TreeNode*FreeList,struct Tree*FirstBestFit)
+{
+    struct TreeNode* temp = FreeList;
+    if(temp->Tree->start == FirstBestFit->start && temp->Tree->end == FirstBestFit->end)
+    {
+        FreeList = FreeList->next;
+        free (temp);
+        return true;
+    }
+    else
+    {
+        while (temp->next != NULL)
+        {
+            struct TreeNode* del = NULL;
+            if(temp->next->Tree->start == FirstBestFit->start && temp->next->Tree->end == FirstBestFit->end)
+            {
+                del = temp->next;
+                temp->next = temp->next->next;
+                free(del);
+                return true;
+            }
+            temp = temp->next;
+        }
+        return false;
+    }
+    return false;
+}
+
+bool InsertFreeSpace(struct TreeNode *FreeList,struct Tree* FreeTree)
+{
+    struct TreeNode* n = (struct TreeNode*)malloc(sizeof(struct TreeNode));
+    n->Tree = FreeTree;
+    n->next = NULL;
+
+
+    struct TreeNode* temp = FreeList;
+    while (temp->next != NULL)
+    {
+        temp = temp->next;
+    }
+    temp->next = n;
+    printf("Insert Node, FreeMem->Freespace = %d\n",temp->next->Tree->FreeSpaceSize);
+    return true;
+}
+
+struct Tree* AllocateMemory(struct TreeNode* FreeList,struct PCB p)
+{
+    if(FreeList == NULL) 
+    {
+        printf("Error: FreeList is empty\n");
         return NULL;
     }
-    else if (p.memsize < x && (root->left == NULL || root->left->FreeSpaceSize >= p.memsize))
+    printf("FreeList root FreeSpace = %d\n",FreeList->Tree->FreeSpaceSize);
+    struct Tree* FirstBestFit = AllocateBestFit(FreeList,p.memsize);
+    if(FirstBestFit == NULL)
     {
-        if(root->left == NULL)
-        {
-            root->left = (struct Tree*)malloc(sizeof(struct Tree));
-            root->left->depth = root->depth + 1;
-            root->left->FreeSpaceSize = power(2,10-root->depth) / 2;
-            root->left->start = root->start;
-            root->left->end = root->start + ((root->end - root->start) / 2);
-            root->left->parent = root;
-            root->left->left = NULL;
-            root->left->right = NULL;
-        }
-        printf("L\n");
-        return AllocateMemory(root->left,p);
+       printf("Error: Failed Allocated Memory\n");
+       return NULL;
     }
-    else if (p.memsize <  x  && root->left != NULL &&  (root->right == NULL|| root->right->FreeSpaceSize >= p.memsize))
+    int x = ((FirstBestFit->end - FirstBestFit->start) / 2) + 1 ;
+    printf("Process Mem = %d , FirstBestFit: Free Space = %d , at depth = %d, %d -> %d , x = %d\n",p.memsize,FirstBestFit->FreeSpaceSize,FirstBestFit->depth,FirstBestFit->start,FirstBestFit->end,x);
+    if(FirstBestFit->FreeSpaceSize < p.memsize) 
     {
-        if(root->right == NULL)
+        printf("Error: No Free Memory\n");
+        return NULL;
+    }
+    else if (p.memsize < x && (FirstBestFit->left == NULL || FirstBestFit->left->FreeSpaceSize >= p.memsize))
+    {
+        RemoveFreeSpace(FreeList,FirstBestFit);
+        if(FirstBestFit->left == NULL)
         {
-            root->right = (struct Tree*)malloc(sizeof(struct Tree));
-            root->right->depth = root->depth + 1;
-            root->right->FreeSpaceSize = power(2,10-root->depth) / 2;
-            root->right->start = (root->end/2)+1;
-            root->right->end = root->end;
-            root->right->parent = root;
-            root->right->left = NULL;
-            root->right->right = NULL;
+            FirstBestFit->left = (struct Tree*)malloc(sizeof(struct Tree));
+            FirstBestFit->left->depth = FirstBestFit->depth + 1;
+            FirstBestFit->left->FreeSpaceSize = power(2,10-FirstBestFit->depth) / 2;
+            FirstBestFit->left->start = FirstBestFit->start;
+            FirstBestFit->left->end = FirstBestFit->start + ((FirstBestFit->end - FirstBestFit->start) / 2);
+            FirstBestFit->left->parent = FirstBestFit;
+            FirstBestFit->left->left = NULL;
+            FirstBestFit->left->right = NULL;
+            InsertFreeSpace(FreeList,FirstBestFit->left);
+        }
+        if(FirstBestFit->right == NULL)
+        {
+            FirstBestFit->right = (struct Tree*)malloc(sizeof(struct Tree));
+            FirstBestFit->right->depth = FirstBestFit->depth + 1;
+            FirstBestFit->right->FreeSpaceSize = power(2,10-FirstBestFit->depth) / 2;
+            FirstBestFit->right->start = (FirstBestFit->end/2)+1;
+            FirstBestFit->right->end = FirstBestFit->end;
+            FirstBestFit->right->parent = FirstBestFit;
+            FirstBestFit->right->left = NULL;
+            FirstBestFit->right->right = NULL;
+            InsertFreeSpace(FreeList,FirstBestFit->right);
+        }
+
+        printf("L\n");
+        return AllocateMemory(FreeList,p);
+    }
+    else if (p.memsize <  x  && FirstBestFit->left != NULL &&  (FirstBestFit->right == NULL|| FirstBestFit->right->FreeSpaceSize >= p.memsize))
+    {
+        RemoveFreeSpace(FreeList,FirstBestFit);
+        if(FirstBestFit->right == NULL)
+        {
+            FirstBestFit->right = (struct Tree*)malloc(sizeof(struct Tree));
+            FirstBestFit->right->depth = FirstBestFit->depth + 1;
+            FirstBestFit->right->FreeSpaceSize = power(2,10-FirstBestFit->depth) / 2;
+            FirstBestFit->right->start = (FirstBestFit->end/2)+1;
+            FirstBestFit->right->end = FirstBestFit->end;
+            FirstBestFit->right->parent = FirstBestFit;
+            FirstBestFit->right->left = NULL;
+            FirstBestFit->right->right = NULL;
+            InsertFreeSpace(FreeList,FirstBestFit->right);
         }
         printf("R\n");
-        return AllocateMemory(root->right,p);
+        return AllocateMemory(FreeList,p);
     }
-    else if (root->right == NULL && root->left == NULL )
+    else if (FirstBestFit->right == NULL && FirstBestFit->left == NULL )
     {
-        struct Tree* temp= root->parent;
+        struct Tree* temp= FirstBestFit->parent;
         printf("Here\n");
 
         while(temp != NULL)
         {
-            temp->FreeSpaceSize -= root->FreeSpaceSize;
+            temp->FreeSpaceSize -= FirstBestFit->FreeSpaceSize;
             temp = temp->parent;
         }
-        root->FreeSpaceSize = 0;
-        return root;
+        FirstBestFit->FreeSpaceSize = 0;
+        return FirstBestFit;
     }
     else
     {
