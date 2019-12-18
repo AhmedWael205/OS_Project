@@ -8,6 +8,7 @@
 FILE * pFile;
 FILE * pFile2;
 
+
 //Process related Functions
 bool StartProcess(struct PCB p);
 bool PauseProcess(struct PCB p);
@@ -16,9 +17,9 @@ void alarmHandler(int signum);
 void ChildSignal(int signum);
 
 //Algorithm chosen Functions
-void HPF(int qid, int count,struct TreeNode* FreeList);
-void SRTN(int qid, int count,struct TreeNode* FreeList);
-void RR(int qid, int count ,int Q,struct TreeNode* FreeList);
+void HPF(int qid, int count,struct FreeListHead* FreeListHead);
+void SRTN(int qid, int count,struct FreeListHead* FreeListHead);
+void RR(int qid, int count ,int Q,struct FreeListHead* FreeListHead);
 
 //Function 3ashwa2eya 
 struct PCB GetProcess(struct Queue* q);
@@ -38,6 +39,7 @@ int main(int argc, char * argv[])
     //Open scheduler file to write first line
     pFile = fopen("scheduler.log", "w");
     pFile2 = fopen("memory.log", "w");
+    FreeMemLog = fopen("FreeMemLog.log", "w");
     fprintf(pFile, "#At time x process y state arr w total z remain y wait k\n");
     fprintf(pFile2, "#At time x allocated y bytes for process z from i to j\n");
 
@@ -73,34 +75,31 @@ int main(int argc, char * argv[])
     root->end = 1023;
     root->left = NULL;
     root->right = NULL;
-    struct TreeNode* FreeList  = (struct TreeNode*)malloc(sizeof(struct TreeNode));
-    FreeList->next =NULL;
-    FreeList->Tree = root;
-    printf("FreeList = %p, FreeList->Tree = %p\n",FreeList,FreeList);
-
-    printf("here\n");
-    if(FreeList == NULL) 
+    struct FreeListHead* FreeListHead  = CreateList();
+    InsertFreeSpace(FreeListHead,root);
+    if(FreeListHead->front == NULL)
     {
-        printf("Error: FreeList is empty\n");
-        return -1;
+        fprintf(FreeMemLog,"Error FreeList didn't Insert root\n");
+        destroyClk(true);
     }
-    printf("FreeList root FreeSpace = %d\n",FreeList->Tree->FreeSpaceSize);
+    fprintf(FreeMemLog,"FreeList root FreeSpace = %d\n",FreeListHead->front->Tree->FreeSpaceSize);
 
 
     if(algo == 1)
     {
-        HPF(qid, count,FreeList);
+        HPF(qid, count,FreeListHead);
     }
     else if(algo == 2)
     {
-        SRTN(qid, count,FreeList);
+        SRTN(qid, count,FreeListHead);
     }
     else if(algo == 3)
     {
-        RR(qid, count, Q,FreeList);
+        RR(qid, count, Q,FreeListHead);
     } 
     fclose(pFile);  
-    fclose(pFile2);  
+    fclose(pFile2); 
+    fclose(FreeMemLog);
     printf("Scheduler Destroying Clock\n"); 
     destroyClk(true);
 }
@@ -154,7 +153,7 @@ int curr_ID = -1;
 int curr_PID = -1;
 int childTerminated = 0;
 
-void RR(int qid, int count ,int Q,struct TreeNode* FreeList)
+void RR(int qid, int count ,int Q,struct FreeListHead* FreeListHead)
 {
     int rec_val;
     int pid;
@@ -206,7 +205,9 @@ void RR(int qid, int count ,int Q,struct TreeNode* FreeList)
                 else 
                 {
                     PCB_Array[curr_ID - 1].pid = pid;
-                    PCB_Array[curr_ID - 1].mem = AllocateMemory(FreeList,PCB_Array[curr_ID - 1]);
+                    PCB_Array[curr_ID - 1].mem  = AllocateMemory(FreeListHead,PCB_Array[curr_ID - 1]);
+                    fprintf(FreeMemLog,"After Allocation:\n");
+                    printFreeSpaces(FreeListHead);
                     StartProcess(PCB_Array[curr_ID - 1]);
                     curr_PID = pid;
                     childTerminated = 0;
@@ -263,7 +264,9 @@ void RR(int qid, int count ,int Q,struct TreeNode* FreeList)
                             }
                             PCB_Array[curr_ID - 1].remainingtime = 0;
                             PCB_Array[curr_ID - 1].status = FINISHED; // FINISHED = 3
-                            //FreeMemory(PCB_Array[curr_ID - 1].mem,PCB_Array[curr_ID - 1]);
+                            FreeMemory(FreeListHead,PCB_Array[curr_ID - 1]);
+                            fprintf(FreeMemLog,"After Free Memory:\n");
+                            printFreeSpaces(FreeListHead);
                             FinishProcess(PCB_Array[curr_ID - 1]);
                         }
                         
@@ -287,7 +290,7 @@ void RR(int qid, int count ,int Q,struct TreeNode* FreeList)
 }
 
 
-void HPF(int qid, int count,struct TreeNode* FreeList)
+void HPF(int qid, int count,struct FreeListHead* FreeListHead)
 {
     int rec_val;
     int pid;
@@ -342,7 +345,9 @@ void HPF(int qid, int count,struct TreeNode* FreeList)
                 {
                     
                     PCB_Array[curr_ID - 1].pid = pid;
-                    PCB_Array[curr_ID - 1].mem = AllocateMemory(FreeList,PCB_Array[curr_ID - 1]);
+                    PCB_Array[curr_ID - 1].mem  = AllocateMemory(FreeListHead,PCB_Array[curr_ID - 1]);
+                    fprintf(FreeMemLog,"After Allocation:\n");
+                    printFreeSpaces(FreeListHead);
                     StartProcess(PCB_Array[curr_ID - 1]);
                     curr_PID = pid;
                     KEEP_RECEIVING:
@@ -373,7 +378,9 @@ void HPF(int qid, int count,struct TreeNode* FreeList)
 
                         PCB_Array[curr_ID - 1].remainingtime = 0;
                         PCB_Array[curr_ID - 1].status = FINISHED; // FINISHED = 3
-                        //FreeMemory(PCB_Array[curr_ID - 1].mem,PCB_Array[curr_ID - 1]);
+                        FreeMemory(FreeListHead,PCB_Array[curr_ID - 1]);
+                        fprintf(FreeMemLog,"After Free Memory:\n");
+                        printFreeSpaces(FreeListHead);
                         FinishProcess(PCB_Array[curr_ID - 1]);
                     }
                 } // end fork
@@ -383,7 +390,7 @@ void HPF(int qid, int count,struct TreeNode* FreeList)
 }
 
 
-void SRTN(int qid, int count,struct TreeNode* FreeList)
+void SRTN(int qid, int count,struct FreeListHead* FreeListHead)
 {
     int rec_val;
     int pid;
@@ -439,7 +446,9 @@ void SRTN(int qid, int count,struct TreeNode* FreeList)
                 else 
                 {
                     PCB_Array[curr_ID - 1].pid = pid;
-                    PCB_Array[curr_ID - 1].mem = AllocateMemory(FreeList,PCB_Array[curr_ID - 1]);
+                    PCB_Array[curr_ID - 1].mem  = AllocateMemory(FreeListHead,PCB_Array[curr_ID - 1]);
+                    fprintf(FreeMemLog,"After Allocation:\n");
+                    printFreeSpaces(FreeListHead);
                     StartProcess(PCB_Array[curr_ID - 1]);
                     curr_PID = pid;
                     KEEP_RECEIVING2:
@@ -482,7 +491,9 @@ void SRTN(int qid, int count,struct TreeNode* FreeList)
                             Process->remainingtime = rcvmsg.p.remainingtime;
                             Process->pid = rcvmsg.p.pid;
                             PCB_Array[rcvmsg.p.id-1].status = RUNNING;
-                            PCB_Array[curr_ID - 1].mem = AllocateMemory(FreeList,PCB_Array[curr_ID - 1]);
+                            PCB_Array[curr_ID - 1].mem  = AllocateMemory(FreeListHead,PCB_Array[curr_ID - 1]);
+                            fprintf(FreeMemLog,"After Allocation:\n");
+                            printFreeSpaces(FreeListHead);
                             StartProcess(PCB_Array[rcvmsg.p.id-1]);
                             RecievedCount++;
                             count--;
@@ -506,7 +517,9 @@ void SRTN(int qid, int count,struct TreeNode* FreeList)
                         }
                         PCB_Array[curr_ID - 1].remainingtime = 0;
                         PCB_Array[curr_ID - 1].status = FINISHED; // FINISHED = 3
-                        //FreeMemory(PCB_Array[curr_ID - 1].mem,PCB_Array[curr_ID - 1]);
+                        FreeMemory(FreeListHead,PCB_Array[curr_ID - 1]);
+                        fprintf(FreeMemLog,"After Free Memory:\n");
+                        printFreeSpaces(FreeListHead);
                         FinishProcess(PCB_Array[curr_ID - 1]);
                     }
                 } // end fork

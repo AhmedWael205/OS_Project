@@ -1,0 +1,124 @@
+Inserting root at InsertFreeSpace, FreeListHead->front->Tree->FreeSpaceSize = 1024
+FreeList root FreeSpace = 1024
+min = 926
+Unpoint to root
+Inserting root at InsertFreeSpace, FreeListHead->front->Tree->FreeSpaceSize = 512
+Insert Node, FreeMem->Freespace = 512
+min = 414
+Unpoint to root
+Insert Node, FreeMem->Freespace = 256
+Insert Node, FreeMem->Freespace = 256
+min = 414
+min = 158
+Unpoint to node
+Insert Node, FreeMem->Freespace = 128
+Insert Node, FreeMem->Freespace = 128
+min = 414
+min = 158
+min = 30
+Unpoint to node
+After Allocation:
+Free Mem = 512, location = 512 -> 1023
+Free Mem = 256, location = 256 -> 511
+Free Mem = 128, location = 128 -> 255
+Insert Node, FreeMem->Freespace = 128
+Unpoint to node
+Unpoint to node
+Insert Node, FreeMem->Freespace = 256
+Unpoint to node
+Unpoint to node
+Insert Node, FreeMem->Freespace = 512
+Unpoint to node
+Unpoint to root
+Inserting root at InsertFreeSpace, FreeListHead->front->Tree->FreeSpaceSize = 1024
+After Free Memory:
+Free Mem = 1024, location = 0 -> 1023
+min = 912
+Unpoint to root
+Inserting root at InsertFreeSpace, FreeListHead->front->Tree->FreeSpaceSize = 512
+Insert Node, FreeMem->Freespace = 512
+min = 400
+Unpoint to root
+Insert Node, FreeMem->Freespace = 256
+Insert Node, FreeMem->Freespace = 256
+min = 400
+min = 144
+Unpoint to node
+Insert Node, FreeMem->Freespace = 128
+Insert Node, FreeMem->Freespace = 128
+min = 400
+min = 144
+min = 16
+Unpoint to node
+After Allocation:
+Free Mem = 512, location = 512 -> 1023
+Free Mem = 256, location = 256 -> 511
+Free Mem = 128, location = 128 -> 255
+Insert Node, FreeMem->Freespace = 128
+Unpoint to node
+Unpoint to node
+Insert Node, FreeMem->Freespace = 256
+Unpoint to node
+Unpoint to node
+Insert Node, FreeMem->Freespace = 512
+Unpoint to node
+Unpoint to root
+Inserting root at InsertFreeSpace, FreeListHead->front->Tree->FreeSpaceSize = 1024
+After Free Memory:
+Free Mem = 1024, location = 0 -> 1023
+min = 779
+Unpoint to root
+Inserting root at InsertFreeSpace, FreeListHead->front->Tree->FreeSpaceSize = 512
+Insert Node, FreeMem->Freespace = 512
+min = 267
+Unpoint to root
+Insert Node, FreeMem->Freespace = 256
+Insert Node, FreeMem->Freespace = 256
+min = 267
+min = 11
+Unpoint to node
+After Allocation:
+Free Mem = 512, location = 512 -> 1023
+Free Mem = 256, location = 256 -> 511
+Insert Node, FreeMem->Freespace = 256
+Unpoint to node
+Unpoint to node
+Insert Node, FreeMem->Freespace = 512
+Unpoint to node
+Unpoint to root
+Inserting root at InsertFreeSpace, FreeListHead->front->Tree->FreeSpaceSize = 1024
+After Free Memory:
+Free Mem = 1024, location = 0 -> 1023
+min = 918
+Unpoint to root
+Inserting root at InsertFreeSpace, FreeListHead->front->Tree->FreeSpaceSize = 512
+Insert Node, FreeMem->Freespace = 512
+min = 406
+Unpoint to root
+Insert Node, FreeMem->Freespace = 256
+Insert Node, FreeMem->Freespace = 256
+min = 406
+min = 150
+Unpoint to node
+Insert Node, FreeMem->Freespace = 128
+Insert Node, FreeMem->Freespace = 128
+min = 406
+min = 150
+min = 22
+Unpoint to node
+After Allocation:
+Free Mem = 512, location = 512 -> 1023
+Free Mem = 256, location = 256 -> 511
+Free Mem = 128, location = 128 -> 255
+Insert Node, FreeMem->Freespace = 128
+Unpoint to node
+Unpoint to node
+Insert Node, FreeMem->Freespace = 256
+Unpoint to node
+Unpoint to node
+Insert Node, FreeMem->Freespace = 512
+Unpoint to node
+Unpoint to root
+Inserting root at InsertFreeSpace, FreeListHead->front->Tree->FreeSpaceSize = 1024
+After Free Memory:
+Free Mem = 1024, location = 0 -> 1023
