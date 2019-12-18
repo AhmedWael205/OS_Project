@@ -22,7 +22,7 @@ int main(int agrc, char * argv[])
         }
     }
 
-    printf("Process Terminating and sending SIGUSR1 to parent : %d\n",getppid());
+    // printf("Process Terminating and sending SIGUSR1 to parent : %d\n",getppid());
 
     kill(getppid(),SIGUSR1);
     raise(SIGKILL);

@@ -12,7 +12,7 @@
 #include <signal.h>
 #include <sys/msg.h>
 
-#define KEY_PATH "/home/ayahsamadoni/Desktop/OS-Phase1&2/OS_Synchronization/tmp/mqueue_key"
+#define KEY_PATH "/home/ahmedwael205/Desktop/OS-Phase1&2/OS_Synchronization/tmp/mqueue_key"
 #define ID_S 'S'
 #define ID_Q 'Q'
 #define ID_M 'M'
@@ -183,11 +183,11 @@ void handler(int signum)
 {
     printf("\nTerminating Producer ...\n");
 
-    printf("Delete Semaphor= %d\nDelete MessageQueue = %d\nDelete SharedMemory = %d\n", Mutex,qid,shmid);
+    // printf("Delete Semaphor= %d\nDelete MessageQueue = %d\nDelete SharedMemory = %d\n", Mutex,qid,shmid);
 
-    msgctl(qid, IPC_RMID, (struct msqid_ds *) 0);
-    shmctl(shmid, IPC_RMID, (struct shmid_ds*) 0);
-    semctl(Mutex, 0,IPC_RMID);
+    // msgctl(qid, IPC_RMID, (struct msqid_ds *) 0);
+    // shmctl(shmid, IPC_RMID, (struct shmid_ds*) 0);
+    // semctl(Mutex, 0,IPC_RMID);
     raise(SIGKILL);
     exit(0);
 }

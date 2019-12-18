@@ -175,7 +175,7 @@ void RR(int qid, int count ,int Q,struct FreeListHead* FreeListHead)
             rec_val = msgrcv(qid,&rcvmsg, sizeof(rcvmsg.p), 7, !IPC_NOWAIT);
             if(rec_val != -1)
             {
-                printf("Clock = %d\n", getClk());
+                printf("Current Clock = %d\n", getClk());
                 printf("Received Message at Scheduler = %d\t%d\t%d\t%d\t%d\n", rcvmsg.p.id, rcvmsg.p.arrivaltime, rcvmsg.p.runningtime, rcvmsg.p.priority,rcvmsg.p.memsize);
                 PCB_Array[rcvmsg.p.id-1] = rcvmsg.p;
                 p.id = rcvmsg.p.id;
@@ -221,7 +221,7 @@ void RR(int qid, int count ,int Q,struct FreeListHead* FreeListHead)
                     rec_val = msgrcv(qid,&rcvmsg, sizeof(rcvmsg.p), 7, !IPC_NOWAIT);
                     if(rec_val != -1)
                     {
-                        printf("Clock2 = %d\n", getClk());
+                        printf("Current Clock  = %d\n", getClk());
                         printf("Received Message at Scheduler = %d\t%d\t%d\t%d\t%d\n", rcvmsg.p.id, rcvmsg.p.arrivaltime, rcvmsg.p.runningtime, rcvmsg.p.priority,rcvmsg.p.memsize);
                         PCB_Array[rcvmsg.p.id-1] = rcvmsg.p;
                         p.id = rcvmsg.p.id;
@@ -312,7 +312,7 @@ void HPF(int qid, int count,struct FreeListHead* FreeListHead)
             rec_val = msgrcv(qid,&rcvmsg, sizeof(rcvmsg.p), 7, !IPC_NOWAIT);
             if(rec_val != -1)
             {
-                printf("Clock = %d\n", getClk());
+                printf("Current Clock  = %d\n", getClk());
                 printf("Received Message at Scheduler = %d\t%d\t%d\t%d\t%d\n", rcvmsg.p.id, rcvmsg.p.arrivaltime, rcvmsg.p.runningtime, rcvmsg.p.priority,rcvmsg.p.memsize);
                 PCB_Array[rcvmsg.p.id-1] = rcvmsg.p;
                 p.id = rcvmsg.p.id;
@@ -356,7 +356,7 @@ void HPF(int qid, int count,struct FreeListHead* FreeListHead)
                     rec_val = msgrcv(qid,&rcvmsg, sizeof(rcvmsg.p), 7, !IPC_NOWAIT);
                     if(rec_val != -1)
                     {
-                        printf("Clock2 = %d\n", getClk());
+                        printf("Current Clock  = %d\n", getClk());
                         printf("Received Message at Scheduler = %d\t%d\t%d\t%d\t%d\n", rcvmsg.p.id, rcvmsg.p.arrivaltime, rcvmsg.p.runningtime, rcvmsg.p.priority,rcvmsg.p.memsize);
                         PCB_Array[rcvmsg.p.id-1] = rcvmsg.p;
                         p.id = rcvmsg.p.id;
@@ -413,7 +413,7 @@ void SRTN(int qid, int count,struct FreeListHead* FreeListHead)
             rec_val = msgrcv(qid,&rcvmsg, sizeof(rcvmsg.p), 7, !IPC_NOWAIT);
             if(rec_val != -1)
             {
-                printf("Clock = %d\n", getClk());
+                printf("Current Clock  = %d\n", getClk());
                 printf("Received Message at Scheduler = %d\t%d\t%d\t%d\t%d\n", rcvmsg.p.id, rcvmsg.p.arrivaltime, rcvmsg.p.runningtime, rcvmsg.p.priority,rcvmsg.p.memsize);
                 PCB_Array[rcvmsg.p.id-1] = rcvmsg.p;
                 p.id = rcvmsg.p.id;
@@ -457,7 +457,7 @@ void SRTN(int qid, int count,struct FreeListHead* FreeListHead)
                     rec_val = msgrcv(qid,&rcvmsg, sizeof(rcvmsg.p), 7, !IPC_NOWAIT);
                     if(rec_val != -1)
                     {
-                        printf("Clock2 = %d\n", getClk());
+                        printf("Current Clock  = %d\n", getClk());
                         printf("Received Message at Scheduler = %d\t%d\t%d\t%d\t%d\n", rcvmsg.p.id, rcvmsg.p.arrivaltime, rcvmsg.p.runningtime, rcvmsg.p.priority,rcvmsg.p.memsize);
                         end = getClk() - start;
 
@@ -547,6 +547,6 @@ void alarmHandler(int signum)
 void ChildSignal(int signum)
 {
     childTerminated = 1;
-    printf("Child with ID = %d has Terminated\n",curr_ID);
+    printf("Child with ID = %d has Terminated, at Time = %d\n",curr_ID,getClk());
     return;
 }

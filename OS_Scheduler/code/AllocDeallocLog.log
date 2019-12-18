@@ -10,62 +10,32 @@ go to Left Child
 FreeList root FreeSpace = 512
 Process Mem = 98 , FirstBestFit: Free Space = 128 , at depth = 3, 0 -> 127 , x = 64
 Allocate The Memory Here
+FreeList root FreeSpace = 512
+Process Mem = 245 , FirstBestFit: Free Space = 256 , at depth = 2, 256 -> 511 , x = 128
+Allocate The Memory Here
+FreeList root FreeSpace = 512
+Process Mem = 112 , FirstBestFit: Free Space = 128 , at depth = 3, 128 -> 255 , x = 64
+Allocate The Memory Here
 Allocated mem from 0 to 127
+Parent old Free Space = 0
+Parent new Free Space = 128
+No Merging
+Allocated mem from 128 to 255
 Parent old Free Space = 128
 Parent new Free Space = 256
 Merging
-Parent old Free Space = 384
-Parent new Free Space = 512
-Merging
-Parent old Free Space = 896
-Parent new Free Space = 1024
-Merging
-Root
-FreeList root FreeSpace = 1024
-Process Mem = 112 , FirstBestFit: Free Space = 1024 , at depth = 0, 0 -> 1023 , x = 512
-go to Left Child
-FreeList root FreeSpace = 512
-Process Mem = 112 , FirstBestFit: Free Space = 512 , at depth = 1, 0 -> 511 , x = 256
-go to Left Child
-FreeList root FreeSpace = 512
-Process Mem = 112 , FirstBestFit: Free Space = 256 , at depth = 2, 0 -> 255 , x = 128
-go to Left Child
-FreeList root FreeSpace = 512
-Process Mem = 112 , FirstBestFit: Free Space = 128 , at depth = 3, 0 -> 127 , x = 64
-Allocate The Memory Here
-Allocated mem from 0 to 127
+Parent old Free Space = 0
+Parent new Free Space = 128
+No Merging
+Allocated mem from 256 to 511
 Parent old Free Space = 128
-Parent new Free Space = 256
+Parent new Free Space = 384
 Merging
-Parent old Free Space = 384
-Parent new Free Space = 512
-Merging
-Parent old Free Space = 896
-Parent new Free Space = 1024
-Merging
-Root
-FreeList root FreeSpace = 1024
-Process Mem = 245 , FirstBestFit: Free Space = 1024 , at depth = 0, 0 -> 1023 , x = 512
-go to Left Child
+Parent old Free Space = 512
+Parent new Free Space = 768
+No Merging
 FreeList root FreeSpace = 512
-Process Mem = 245 , FirstBestFit: Free Space = 512 , at depth = 1, 0 -> 511 , x = 256
-go to Left Child
-FreeList root FreeSpace = 512
-Process Mem = 245 , FirstBestFit: Free Space = 256 , at depth = 2, 0 -> 255 , x = 128
-Allocate The Memory Here
-Allocated mem from 0 to 255
-Parent old Free Space = 256
-Parent new Free Space = 512
-Merging
-Parent old Free Space = 768
-Parent new Free Space = 1024
-Merging
-Root
-FreeList root FreeSpace = 1024
-Process Mem = 106 , FirstBestFit: Free Space = 1024 , at depth = 0, 0 -> 1023 , x = 512
-go to Left Child
-FreeList root FreeSpace = 512
-Process Mem = 106 , FirstBestFit: Free Space = 512 , at depth = 1, 0 -> 511 , x = 256
+Process Mem = 106 , FirstBestFit: Free Space = 384 , at depth = 1, 0 -> 511 , x = 256
 go to Left Child
 FreeList root FreeSpace = 512
 Process Mem = 106 , FirstBestFit: Free Space = 256 , at depth = 2, 0 -> 255 , x = 128
@@ -77,10 +47,9 @@ Allocated mem from 0 to 127
 Parent old Free Space = 128
 Parent new Free Space = 256
 Merging
-Parent old Free Space = 384
-Parent new Free Space = 512
+Parent old Free Space = 256
+Parent new Free Space = 384
 Merging
-Parent old Free Space = 896
-Parent new Free Space = 1024
-Merging
-Root
+Parent old Free Space = 640
+Parent new Free Space = 768
+No Merging
