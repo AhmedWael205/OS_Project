@@ -1,119 +1,115 @@
 Inserting root at InsertFreeSpace, FreeListHead->front->Tree->FreeSpaceSize = 1024
 FreeList root FreeSpace = 1024
-min = 926
+min = 771
 Unpoint to root
 Inserting root at InsertFreeSpace, FreeListHead->front->Tree->FreeSpaceSize = 512
 Insert Node, FreeMem->Freespace = 512
-min = 414
+min = 259
 Unpoint to root
 Insert Node, FreeMem->Freespace = 256
 Insert Node, FreeMem->Freespace = 256
-min = 414
-min = 158
-Unpoint to node
-Insert Node, FreeMem->Freespace = 128
-Insert Node, FreeMem->Freespace = 128
-min = 414
-min = 158
-min = 30
+min = 259
+min = 3
 Unpoint to node
 After Allocation:
 Free Mem = 512, location = 512 -> 1023
 Free Mem = 256, location = 256 -> 511
-Free Mem = 128, location = 128 -> 255
-min = 267
-min = 11
+min = 460
+min = 204
+Unpoint to node
+Insert Node, FreeMem->Freespace = 128
+Insert Node, FreeMem->Freespace = 128
+min = 460
+min = 76
+Unpoint to node
+Insert Node, FreeMem->Freespace = 64
+Insert Node, FreeMem->Freespace = 64
+min = 460
+min = 76
+min = 12
 Unpoint to node
 After Allocation:
 Free Mem = 512, location = 512 -> 1023
-Free Mem = 128, location = 128 -> 255
-min = 400
-min = 16
-Unpoint to node
-After Allocation:
-Free Mem = 512, location = 512 -> 1023
-min = 406
+Free Mem = 128, location = 384 -> 511
+Free Mem = 64, location = 320 -> 383
+min = 281
 Unpoint to root
-Inserting root at InsertFreeSpace, FreeListHead->front->Tree->FreeSpaceSize = 256
 Insert Node, FreeMem->Freespace = 256
-min = 150
-Unpoint to root
-Insert Node, FreeMem->Freespace = 128
-Insert Node, FreeMem->Freespace = 128
-min = 150
-min = 22
+Insert Node, FreeMem->Freespace = 256
+min = 25
 Unpoint to node
 After Allocation:
+Free Mem = 128, location = 384 -> 511
+Free Mem = 64, location = 320 -> 383
 Free Mem = 256, location = 768 -> 1023
-Free Mem = 128, location = 640 -> 767
-Allocated mem from 0 to 127
+min = 52
+Unpoint to node
+After Allocation:
+Free Mem = 128, location = 384 -> 511
+Free Mem = 64, location = 320 -> 383
+Allocated mem from 0 to 255
+Insert Node, FreeMem->Freespace = 256
+Parent old Free Space = 192
+Parent new Free Space = 448
+No Merging
+Parent old Free Space = 192
+Parent new Free Space = 448
+No Merging
+Root
+After Free Memory:
+Free Mem = 128, location = 384 -> 511
+Free Mem = 64, location = 320 -> 383
+Free Mem = 256, location = 0 -> 255
+Allocated mem from 256 to 319
+Insert Node, FreeMem->Freespace = 64
+Parent old Free Space = 64
+Parent new Free Space = 128
+Merging
+Unpoint to node
+Unpoint to node
 Insert Node, FreeMem->Freespace = 128
-Parent old Free Space = 0
-Parent new Free Space = 128
-No Merging
-Parent old Free Space = 0
-Parent new Free Space = 128
-No Merging
-Parent old Free Space = 384
+Parent old Free Space = 192
+Parent new Free Space = 256
+Merging
+Unpoint to node
+Unpoint to root
+Insert Node, FreeMem->Freespace = 256
+Parent old Free Space = 448
+Parent new Free Space = 512
+Merging
+Unpoint to root
+Unpoint to root
+Inserting root at InsertFreeSpace, FreeListHead->front->Tree->FreeSpaceSize = 512
+Parent old Free Space = 448
 Parent new Free Space = 512
 No Merging
 Root
 After Free Memory:
-Free Mem = 256, location = 768 -> 1023
-Free Mem = 128, location = 640 -> 767
-Free Mem = 128, location = 0 -> 127
-Allocated mem from 128 to 255
-Insert Node, FreeMem->Freespace = 128
-Parent old Free Space = 128
-Parent new Free Space = 256
-Merging
-Unpoint to node
-Unpoint to node
+Free Mem = 512, location = 0 -> 511
+Allocated mem from 512 to 767
 Insert Node, FreeMem->Freespace = 256
-Parent old Free Space = 128
+Parent old Free Space = 0
 Parent new Free Space = 256
 No Merging
 Parent old Free Space = 512
-Parent new Free Space = 640
-No Merging
-Root
-After Free Memory:
-Free Mem = 256, location = 768 -> 1023
-Free Mem = 128, location = 640 -> 767
-Free Mem = 256, location = 0 -> 255
-Allocated mem from 512 to 639
-Insert Node, FreeMem->Freespace = 128
-Parent old Free Space = 128
-Parent new Free Space = 256
-Merging
-Unpoint to node
-Unpoint to node
-Insert Node, FreeMem->Freespace = 256
-Parent old Free Space = 384
-Parent new Free Space = 512
-Merging
-Unpoint to node
-Unpoint to root
-Insert Node, FreeMem->Freespace = 512
-Parent old Free Space = 640
 Parent new Free Space = 768
 No Merging
 Root
 After Free Memory:
-Free Mem = 256, location = 0 -> 255
-Free Mem = 512, location = 512 -> 1023
-Allocated mem from 256 to 511
+Free Mem = 512, location = 0 -> 511
+Free Mem = 256, location = 512 -> 767
+Allocated mem from 768 to 1023
 Insert Node, FreeMem->Freespace = 256
 Parent old Free Space = 256
 Parent new Free Space = 512
 Merging
-Unpoint to root
+Unpoint to node
 Unpoint to node
 Insert Node, FreeMem->Freespace = 512
 Parent old Free Space = 768
 Parent new Free Space = 1024
 Merging
-Unpoint to node
+Unpoint to root
 Unpoint to root
 Inserting root at InsertFreeSpace, FreeListHead->front->Tree->FreeSpaceSize = 1024
 Root

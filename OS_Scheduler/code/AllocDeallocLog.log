@@ -1,27 +1,27 @@
 FreeList root FreeSpace = 1024
-Process Mem = 98 , FirstBestFit: Free Space = 1024 , at depth = 0, 0 -> 1023 , x = 512
+Process Mem = 253 , FirstBestFit: Free Space = 1024 , at depth = 0, 0 -> 1023 , x = 512
 go to Left Child
 FreeList root FreeSpace = 512
-Process Mem = 98 , FirstBestFit: Free Space = 512 , at depth = 1, 0 -> 511 , x = 256
+Process Mem = 253 , FirstBestFit: Free Space = 512 , at depth = 1, 0 -> 511 , x = 256
 go to Left Child
 FreeList root FreeSpace = 512
-Process Mem = 98 , FirstBestFit: Free Space = 256 , at depth = 2, 0 -> 255 , x = 128
-go to Left Child
-FreeList root FreeSpace = 512
-Process Mem = 98 , FirstBestFit: Free Space = 128 , at depth = 3, 0 -> 127 , x = 64
+Process Mem = 253 , FirstBestFit: Free Space = 256 , at depth = 2, 0 -> 255 , x = 128
 Allocate The Memory Here
 FreeList root FreeSpace = 512
-Process Mem = 245 , FirstBestFit: Free Space = 256 , at depth = 2, 256 -> 511 , x = 128
+Process Mem = 52 , FirstBestFit: Free Space = 256 , at depth = 2, 256 -> 511 , x = 128
+go to Left Child
+FreeList root FreeSpace = 512
+Process Mem = 52 , FirstBestFit: Free Space = 128 , at depth = 3, 256 -> 383 , x = 64
+go to Left Child
+FreeList root FreeSpace = 512
+Process Mem = 52 , FirstBestFit: Free Space = 64 , at depth = 4, 256 -> 319 , x = 32
 Allocate The Memory Here
 FreeList root FreeSpace = 512
-Process Mem = 112 , FirstBestFit: Free Space = 128 , at depth = 3, 128 -> 255 , x = 64
+Process Mem = 231 , FirstBestFit: Free Space = 512 , at depth = 1, 512 -> 1023 , x = 256
+go to Left Child
+FreeList root FreeSpace = 128
+Process Mem = 231 , FirstBestFit: Free Space = 256 , at depth = 2, 512 -> 767 , x = 128
 Allocate The Memory Here
-FreeList root FreeSpace = 512
-Process Mem = 106 , FirstBestFit: Free Space = 512 , at depth = 1, 512 -> 1023 , x = 256
-go to Left Child
-FreeList root FreeSpace = 256
-Process Mem = 106 , FirstBestFit: Free Space = 256 , at depth = 2, 512 -> 767 , x = 128
-go to Left Child
-FreeList root FreeSpace = 256
-Process Mem = 106 , FirstBestFit: Free Space = 128 , at depth = 3, 512 -> 639 , x = 64
+FreeList root FreeSpace = 128
+Process Mem = 204 , FirstBestFit: Free Space = 256 , at depth = 2, 768 -> 1023 , x = 128
 Allocate The Memory Here
