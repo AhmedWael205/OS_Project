@@ -1,5 +1,6 @@
 #include "headers.h"
 #include <signal.h>
+#include<math.h>
 
 #define KEY_PATH "/home/ahmedwael205/Desktop/OS-Phase1&2/OS_Scheduler/code/tmp/mqueue_key"
 #define ID 'M'
@@ -7,6 +8,7 @@
 
 FILE * pFile;
 FILE * pFile2;
+FILE * perf;
 
 
 //Process related Functions
@@ -15,6 +17,7 @@ bool PauseProcess(struct PCB p);
 bool ResumeProcess(struct PCB p);
 void alarmHandler(int signum);
 void ChildSignal(int signum);
+void clearResources(int);
 
 //Algorithm chosen Functions
 void HPF(int qid, int count,struct FreeListHead* FreeListHead);
@@ -31,6 +34,7 @@ int main(int argc, char * argv[])
 {
     signal(SIGUSR1, ChildSignal);
     signal(SIGALRM, alarmHandler);
+    signal(SIGINT, clearResources);
 
     initClk();
     int x = getClk();
@@ -41,6 +45,7 @@ int main(int argc, char * argv[])
     pFile2 = fopen("memory.log", "w");
     FreeMemLog = fopen("FreeMemLog.log", "w");
     AllocDeallocLog = fopen("AllocDeallocLog.log","w");
+    perf = fopen("scheduler.perf", "w");
     fprintf(pFile, "#At time x process y state arr w total z remain y wait k\n");
     fprintf(pFile2, "#At time x allocated y bytes for process z from i to j\n");
 
@@ -85,7 +90,6 @@ int main(int argc, char * argv[])
     }
     fprintf(FreeMemLog,"FreeList root FreeSpace = %d\n",FreeListHead->front->Tree->FreeSpaceSize);
 
-
     if(algo == 1)
     {
         HPF(qid, count,FreeListHead);
@@ -97,9 +101,12 @@ int main(int argc, char * argv[])
     else if(algo == 3)
     {
         RR(qid, count, Q,FreeListHead);
-    } 
+    }
+
+    
     fclose(pFile);  
-    fclose(pFile2); 
+    fclose(pFile2);
+    fclose(perf); 
     fclose(FreeMemLog);
     fclose(AllocDeallocLog);
     printf("Scheduler Destroying Clock\n"); 
@@ -121,7 +128,6 @@ bool FreeMem(struct PCB p)
 bool StartProcess(struct PCB p)
 {
     fprintf(pFile,"At time %d process %d started arr %d total %d remain %d wait %d\n",getClk(), p.id, p.arrivaltime, p.runningtime, p.remainingtime, p.waitingtime );
-    AllocMem(p);
     return true;
 }
 
@@ -143,8 +149,7 @@ bool ResumeProcess(struct PCB p)
 
 bool FinishProcess(struct PCB p)
 {
-    int x = getClk();
-    fprintf(pFile,"At time %d process %d finished arr %d total %d remain %d wait %d TA %d WTA %0.2f\n",x, p.id, p.arrivaltime, p.runningtime, p.remainingtime, p.waitingtime,x - p.arrivaltime ,(float)(x - p.arrivaltime)/p.runningtime );
+    fprintf(pFile,"At time %d process %d finished arr %d total %d remain %d wait %d TA %d WTA %0.2f\n",getClk(), p.id, p.arrivaltime, p.runningtime, p.remainingtime, p.waitingtime,p.TA ,(float)p.TA/p.runningtime );
     kill(p.pid, SIGCONT);
     FreeMem(p);
     return true;
@@ -165,6 +170,7 @@ void RR(int qid, int count ,int Q,struct FreeListHead* FreeListHead)
     struct Node* Process;
     struct Node p;
     struct Queue* ReadyQueue = CreateQueue();
+    int count2 = count;
 
     struct PCB* PCB_Array = (struct PCB*)malloc(count * sizeof(struct PCB));
     while (count !=0 || ReadyQueue->front != NULL)
@@ -181,6 +187,10 @@ void RR(int qid, int count ,int Q,struct FreeListHead* FreeListHead)
                 p.id = rcvmsg.p.id;
                 p.pid = -1;
                 p.remainingtime = rcvmsg.p.runningtime;
+                PCB_Array[p.id  - 1].mem  = AllocateMemory(FreeListHead,PCB_Array[p.id  - 1]);
+                fprintf(FreeMemLog,"After Allocation:\n");
+                printFreeSpaces(FreeListHead);
+                AllocMem(PCB_Array[p.id  - 1]);
                 Enqueue(ReadyQueue, p); 
                 RecievedCount++;
                 count--;
@@ -207,9 +217,6 @@ void RR(int qid, int count ,int Q,struct FreeListHead* FreeListHead)
                 else 
                 {
                     PCB_Array[curr_ID - 1].pid = pid;
-                    PCB_Array[curr_ID - 1].mem  = AllocateMemory(FreeListHead,PCB_Array[curr_ID - 1]);
-                    fprintf(FreeMemLog,"After Allocation:\n");
-                    printFreeSpaces(FreeListHead);
                     StartProcess(PCB_Array[curr_ID - 1]);
                     curr_PID = pid;
                     childTerminated = 0;
@@ -227,6 +234,10 @@ void RR(int qid, int count ,int Q,struct FreeListHead* FreeListHead)
                         p.id = rcvmsg.p.id;
                         p.pid = -1;
                         p.remainingtime = rcvmsg.p.runningtime;
+                        PCB_Array[p.id  - 1].mem  = AllocateMemory(FreeListHead,PCB_Array[p.id  - 1]);
+                        fprintf(FreeMemLog,"After Allocation:\n");
+                        printFreeSpaces(FreeListHead);
+                        AllocMem(PCB_Array[p.id  - 1]);
                         Enqueue(ReadyQueue, p); 
                         RecievedCount++;
                         count--;
@@ -269,6 +280,7 @@ void RR(int qid, int count ,int Q,struct FreeListHead* FreeListHead)
                             FreeMemory(FreeListHead,PCB_Array[curr_ID - 1]);
                             fprintf(FreeMemLog,"After Free Memory:\n");
                             printFreeSpaces(FreeListHead);
+                            PCB_Array[curr_ID - 1].TA = getClk() - PCB_Array[curr_ID - 1].arrivaltime;
                             FinishProcess(PCB_Array[curr_ID - 1]);
                         }
                         
@@ -289,6 +301,28 @@ void RR(int qid, int count ,int Q,struct FreeListHead* FreeListHead)
         
         } // end else of (if(ReadyQueue->front == NULL)
     }// end while (count ! = 0 && pr)
+
+    double AVGwaiting = 0;
+    double AVGWTA = 0;
+    double STD = 0;
+    for (int i = 0; i < count2; i++)
+    {
+        AVGwaiting += PCB_Array[i].waitingtime;
+        AVGWTA += (double) (PCB_Array[i].waitingtime / PCB_Array[i].runningtime);
+    }
+    AVGwaiting /= count2;
+    AVGWTA /= count2;
+    double x = 0;
+    double y = 0;
+    for (int i = 0; i < count2; i++)
+    {
+        y = ((double) (PCB_Array[i].waitingtime / PCB_Array[i].runningtime) - AVGWTA);
+        x = x + pow(y,2);
+    }
+    STD = sqrt(x/(count2 - 1));
+    fprintf(perf,"AVG WTA = %0.2f\n",AVGWTA);
+    fprintf(perf,"AVG waiting = %0.2f\n",AVGwaiting);
+    fprintf(perf,"STD WTA = %0.2f\n",STD);
 }
 
 
@@ -302,6 +336,7 @@ void HPF(int qid, int count,struct FreeListHead* FreeListHead)
     struct Node* Process;
     struct Node p;
     struct Queue* ReadyQueue = CreateQueue();
+    int count2 = count;
 
     struct PCB* PCB_Array = (struct PCB*)malloc(count * sizeof(struct PCB));
     while (count !=0 || ReadyQueue->front != NULL)
@@ -319,6 +354,10 @@ void HPF(int qid, int count,struct FreeListHead* FreeListHead)
                 p.pid = -1;
                 p.remainingtime = rcvmsg.p.runningtime;
                 p.priority = rcvmsg.p.priority;
+                PCB_Array[p.id  - 1].mem  = AllocateMemory(FreeListHead,PCB_Array[p.id  - 1]);
+                fprintf(FreeMemLog,"After Allocation:\n");
+                printFreeSpaces(FreeListHead);
+                AllocMem(PCB_Array[p.id  - 1]);
                 priorityEnqueue(ReadyQueue, p); 
                 RecievedCount++;
                 count--;
@@ -347,9 +386,6 @@ void HPF(int qid, int count,struct FreeListHead* FreeListHead)
                 {
                     
                     PCB_Array[curr_ID - 1].pid = pid;
-                    PCB_Array[curr_ID - 1].mem  = AllocateMemory(FreeListHead,PCB_Array[curr_ID - 1]);
-                    fprintf(FreeMemLog,"After Allocation:\n");
-                    printFreeSpaces(FreeListHead);
                     StartProcess(PCB_Array[curr_ID - 1]);
                     curr_PID = pid;
                     KEEP_RECEIVING:
@@ -363,6 +399,11 @@ void HPF(int qid, int count,struct FreeListHead* FreeListHead)
                         p.pid = -1;
                         p.remainingtime = rcvmsg.p.runningtime;
                         p.priority = rcvmsg.p.priority;
+                        PCB_Array[p.id  - 1].mem  = AllocateMemory(FreeListHead,PCB_Array[p.id  - 1]);
+                        if( PCB_Array[p.id  - 1].mem  == NULL) printf("here5\n");
+                        fprintf(FreeMemLog,"After Allocation:\n");
+                        printFreeSpaces(FreeListHead);
+                        AllocMem(PCB_Array[p.id  - 1]);
                         priorityEnqueue(ReadyQueue, p); 
                         RecievedCount++;
                         count--;
@@ -383,12 +424,35 @@ void HPF(int qid, int count,struct FreeListHead* FreeListHead)
                         FreeMemory(FreeListHead,PCB_Array[curr_ID - 1]);
                         fprintf(FreeMemLog,"After Free Memory:\n");
                         printFreeSpaces(FreeListHead);
+                        PCB_Array[curr_ID - 1].TA = getClk() - PCB_Array[curr_ID - 1].arrivaltime;
                         FinishProcess(PCB_Array[curr_ID - 1]);
                     }
                 } // end fork
             } // end else (if (Process->pid == -1))
         }  // end else (if (ReadyQueue->front == NULL)  )    
     } // end while
+    double AVGwaiting = 0;
+    double AVGWTA = 0;
+    double STD = 0;
+    for (int i = 0; i < count2; i++)
+    {
+        AVGwaiting += PCB_Array[i].waitingtime;
+        AVGWTA += (double) (PCB_Array[i].waitingtime / PCB_Array[i].runningtime);
+    }
+    AVGwaiting /= count2;
+    AVGWTA /= count2;
+
+    double x = 0;
+    double y = 0;
+    for (int i = 0; i < count2; i++)
+    {
+        y = ((double) (PCB_Array[i].waitingtime / PCB_Array[i].runningtime) - AVGWTA);
+        x = x + pow(y,2);
+    }
+    STD = sqrt(x/(count2 - 1));
+    fprintf(perf,"AVG WTA = %0.2f\n",AVGWTA);
+    fprintf(perf,"AVG waiting = %0.2f\n",AVGwaiting);
+    fprintf(perf,"STD WTA = %0.2f\n",STD);
 }
 
 
@@ -403,6 +467,7 @@ void SRTN(int qid, int count,struct FreeListHead* FreeListHead)
     struct Node* Process;
     struct Node p;
     struct Queue* ReadyQueue = CreateQueue();
+    int count2  = count;
 
     struct PCB* PCB_Array = (struct PCB*)malloc(count * sizeof(struct PCB));
     while (count !=0 || ReadyQueue->front != NULL)
@@ -419,7 +484,11 @@ void SRTN(int qid, int count,struct FreeListHead* FreeListHead)
                 p.id = rcvmsg.p.id;
                 p.pid = -1;
                 p.remainingtime = rcvmsg.p.runningtime;
-                priorityEnqueue(ReadyQueue, p); 
+                PCB_Array[p.id  - 1].mem  = AllocateMemory(FreeListHead,PCB_Array[p.id  - 1]);
+                fprintf(FreeMemLog,"After Allocation:\n");
+                printFreeSpaces(FreeListHead);
+                AllocMem(PCB_Array[p.id  - 1]);
+                STimeEnqueue(ReadyQueue, p); 
                 RecievedCount++;
                 count--;
             }
@@ -448,9 +517,6 @@ void SRTN(int qid, int count,struct FreeListHead* FreeListHead)
                 else 
                 {
                     PCB_Array[curr_ID - 1].pid = pid;
-                    PCB_Array[curr_ID - 1].mem  = AllocateMemory(FreeListHead,PCB_Array[curr_ID - 1]);
-                    fprintf(FreeMemLog,"After Allocation:\n");
-                    printFreeSpaces(FreeListHead);
                     StartProcess(PCB_Array[curr_ID - 1]);
                     curr_PID = pid;
                     KEEP_RECEIVING2:
@@ -460,6 +526,10 @@ void SRTN(int qid, int count,struct FreeListHead* FreeListHead)
                         printf("Current Clock  = %d\n", getClk());
                         printf("Received Message at Scheduler = %d\t%d\t%d\t%d\t%d\n", rcvmsg.p.id, rcvmsg.p.arrivaltime, rcvmsg.p.runningtime, rcvmsg.p.priority,rcvmsg.p.memsize);
                         end = getClk() - start;
+                        PCB_Array[rcvmsg.p.id  - 1].mem  = AllocateMemory(FreeListHead,PCB_Array[rcvmsg.p.id - 1]);
+                        fprintf(FreeMemLog,"After Allocation:\n");
+                        printFreeSpaces(FreeListHead);
+                        AllocMem(PCB_Array[rcvmsg.p.id - 1]);
 
                         if(rcvmsg.p.runningtime >= Process->remainingtime - end)
                         {
@@ -522,6 +592,7 @@ void SRTN(int qid, int count,struct FreeListHead* FreeListHead)
                         FreeMemory(FreeListHead,PCB_Array[curr_ID - 1]);
                         fprintf(FreeMemLog,"After Free Memory:\n");
                         printFreeSpaces(FreeListHead);
+                        PCB_Array[curr_ID - 1].TA = getClk() - PCB_Array[curr_ID - 1].arrivaltime;
                         FinishProcess(PCB_Array[curr_ID - 1]);
                     }
                 } // end fork
@@ -535,6 +606,29 @@ void SRTN(int qid, int count,struct FreeListHead* FreeListHead)
             }   // end else (if (Process->pid == -1)) 
         }  // end else (if (ReadyQueue->front == NULL)  )    
     } // end while
+
+    double AVGwaiting = 0;
+    double AVGWTA = 0;
+    double STD = 0;
+    for (int i = 0; i < count2; i++)
+    {
+        AVGwaiting += PCB_Array[i].waitingtime;
+        AVGWTA += (double) (PCB_Array[i].waitingtime / PCB_Array[i].runningtime);
+    }
+    AVGwaiting /= count2;
+    AVGWTA /= count2;
+
+    double x = 0;
+    double y = 0;
+    for (int i = 0; i < count2; i++)
+    {
+        y = ((double) (PCB_Array[i].waitingtime / PCB_Array[i].runningtime) - AVGWTA);
+        x = x + pow(y,2);
+    }
+    STD = sqrt(x/(count2 - 1));
+    fprintf(perf,"AVG WTA = %0.2f\n",AVGWTA);
+    fprintf(perf,"AVG waiting = %0.2f\n",AVGwaiting);
+    fprintf(perf,"STD WTA = %0.2f\n",STD);
 }
 
 
@@ -549,4 +643,16 @@ void ChildSignal(int signum)
     childTerminated = 1;
     printf("Child with ID = %d has Terminated, at Time = %d\n",curr_ID,getClk());
     return;
+}
+
+void clearResources(int signum)
+{
+    //TODO Clears all resources in case of interruption
+    fclose(pFile);  
+    fclose(pFile2); 
+    fclose(FreeMemLog);
+    fclose(AllocDeallocLog);
+    destroyClk(true);
+    msgctl(qid, IPC_RMID, (struct msqid_ds *) 0);
+    raise(SIGKILL); //For Me.
 }
